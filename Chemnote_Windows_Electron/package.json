@@ -1,0 +1,62 @@
+{
+  "name": "chemnote",
+  "productName": "ChemNote",
+  "version": "15.15.0",
+  "description": "ChemNote - Vở ghi chú & Vẽ cấu trúc Hóa học chuyên nghiệp",
+  "author": "ChemNote",
+  "license": "Proprietary",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist:win": "electron-builder --win nsis portable --x64",
+    "dist:win:nsis": "electron-builder --win nsis --x64",
+    "dist:win:portable": "electron-builder --win portable --x64"
+  },
+  "devDependencies": {
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "vn.chemnote.desktop",
+    "productName": "ChemNote",
+    "asar": true,
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "app/**/*",
+      "build/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "ChemNote",
+      "artifactName": "ChemNote-Setup-${version}-win-x64.${ext}"
+    },
+    "portable": {
+      "artifactName": "ChemNote-Portable-${version}-win-x64.${ext}"
+    }
+  }
+}

@@ -1,0 +1,1527 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Chemnote" />
+    <meta name="theme-color" content="#090f1d" />
+    <title>ChemNote — Goodnotes 6 × ChemDraw Studio</title>
+    <link rel="manifest" href="manifest.json" />
+    <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@700;800&family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous" />
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/mhchem.min.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="style.css?v=14" />
+</head>
+<body onclick="closeAllPopovers()">
+
+    <div id="gestureToastHud" class="hidden"></div>
+    <input id="chemFileInput" type="file" accept=".chemnotes,.json" class="hidden" onchange="handleImportNotebookFile(event)" />
+    <input id="pageImageInput" type="file" accept="image/*" class="hidden" onchange="handleInsertImageFile(event)" />
+    <input id="examFileInput" type="file" accept="image/*,.heic,.heif,.pdf,.txt,.md,.json,.chemnotes,.csv,.html,.htm,.rtf,.doc,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/*" multiple class="hidden" onchange="handleExamFilesSelected(event)" />
+
+    <!-- HÀNG 1: THANH ĐA TAB XANH NEON & CHIA ĐÔI MÀN HÌNH -->
+    <header class="gn-top-tabs" onclick="event.stopPropagation()">
+        <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5 min-w-0 flex-1">
+            <button onclick="openLibraryHub()" class="gn-brand-btn" title="Sảnh Thư Viện ChemNote">
+                <svg class="w-3.5 h-3.5 text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="15 18 9 12 15 6"/></svg>
+                <span class="brand-wordmark"><span class="brand-chem">Chem</span><span class="brand-note">Note</span></span>
+            </button>
+            <div id="gnOpenTabsBar" class="flex items-center gap-1.5"></div>
+            <div class="relative">
+                <button onclick="toggleQuickOpenTabMenu(event)" class="gn-tab-add-btn" title="Mở thêm sổ trên thanh Tab">+</button>
+                <div id="quickTabPickerMenu" class="hidden fixed mt-1 w-60 bg-slate-900 border border-sky-500/40 rounded-xl p-1.5 shadow-2xl z-[150]"></div>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar min-w-0">
+            <button onclick="openSupportCommunityModal('all')" id="supportCommunityTopBtn" class="top-icon-btn support-pill-btn" title="Ủng hộ ChemNotes nếu thấy hay & Nhóm Zalo Cộng đồng">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                <span>Ủng hộ &amp; Nhóm</span>
+            </button>
+            <button onclick="togglePresenterPopover(event)" id="presentationModeBtn" class="top-icon-btn" title="Trình chiếu Bảng Trắng Sạch (Zoom / Google Meet / Quay Video chỉ hiện giấy trắng)">
+                <span id="presenterStatusDot" class="pres-status-dot hidden"></span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                <span id="presenterBtnLabel" class="hidden">Trình chiếu</span>
+            </button>
+            <button onclick="toggleSplitViewMode()" id="splitViewToggleBtn" class="top-icon-btn" title="Chia đôi màn hình 2 sổ (Split-View)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+            </button>
+            <button onclick="toggleAppFullscreen()" id="topFullscreenQuickBtn" class="top-icon-btn" title="Toàn màn hình gọn sạch (Ẩn thanh Tab, đưa Hub sát mép trên)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+            </button>
+            <button onclick="toggleAppSettingsMenu(event)" id="appSettingsHubBtn" class="top-icon-btn top-setting-pill relative" title="Chức năng khác: Chế độ Đọc, Toàn màn hình, Cảm ứng, Tone màu & Tệp">
+                <span id="versionUpdateDot" class="ver-badge-dot hidden"></span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                <span>Chức năng khác</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- HÀNG 2: THANH XANH NAVY CHEMDRAW -->
+    <nav class="gn-navy-toolbar" onclick="event.stopPropagation()">
+        <div id="navyToolbarItemsRow" class="flex items-center gap-1 overflow-x-auto no-scrollbar flex-1 justify-center">
+            <button data-navy-item="page_grid" id="nt-item-page_grid" onclick="openPageGridModal()" class="gn-main-tool" title="Quản lý trang">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+            </button>
+            <button data-navy-item="paper_tpl" id="nt-item-paper_tpl" onclick="togglePaperTemplatePopover(event)" class="gn-main-tool" title="Cài đặt trang giấy (Mẫu, cỡ, màu, khoảng cách)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+                <span class="caret-tick">▾</span>
+            </button>
+
+            <button data-navy-item="chem_bond" onclick="handleBondToolBtnClick(event)" id="cd-chem_bond" class="gn-main-tool" title="Liên kết C–C (Bấm lại để chỉnh độ dài C–C; nhấn giữ vòng tròn xanh để di chuyển)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="5" y1="19" x2="19" y2="5"/></svg>
+                <span id="toolbarBondLenBadge" style="position:absolute;bottom:2px;left:3px;font-size:8px;font-weight:800;line-height:1;opacity:0.85;pointer-events:none;">44</span>
+                <span class="caret-tick">▾</span>
+            </button>
+            <button data-navy-item="chem_move" onclick="selectChemDrawTool('chem_move')" id="cd-chem_move" class="gn-main-tool" title="Di chuyển & Chỉnh tay cầm Bezier mũi tên cơ chế, khung ngoặc (Giữ Shift để kéo cả phân tử)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5 9 2 12 5 15"/><polyline points="9 5 12 2 15 5"/><polyline points="15 19 12 22 9 19"/><polyline points="19 9 22 12 19 15"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/></svg>
+            </button>
+            <button data-navy-item="chem_stereo_hub" onclick="handleStereoHubClick(event)" id="cd-chem_stereo_hub" class="gn-main-tool" title="Nét Thanh (hướng ra trước) & Nét Gạch (hướng ra sau)">
+                <svg id="stereoHubBtnIcon" viewBox="0 0 24 24" fill="currentColor"><polygon points="4,20 15,5 19,9"/><line x1="14" y1="20" x2="21" y2="13" stroke="currentColor" stroke-width="1.8" stroke-dasharray="2.4 2"/></svg>
+                <span class="caret-tick">▾</span>
+            </button>
+
+            <button data-navy-item="chem_ring_hub" onclick="handleRingHubClick(event)" id="cd-chem_ring_hub" class="gn-main-tool" title="Hệ vòng C3–C9 & Dị vòng (Click vào liên kết để ghép vòng chung cạnh)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 20 7 20 17 12 22 4 17 4 7"/></svg>
+                <span class="caret-tick">▾</span>
+            </button>
+            <button data-navy-item="chem_arrow_hub" onclick="handleArrowHubClick(event)" id="cd-chem_arrow_hub" class="gn-main-tool" title="Mũi tên Phản ứng & Mũi tên cong Cơ chế electron (e⁻)">
+                <svg id="arrowHubBtnIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><line x1="3" y1="15" x2="19" y2="15"/><polyline points="14 11 19 15 14 19"/><path d="M5 10 C8 4, 15 4, 18 9" stroke="#f43f5e"/><polyline points="15 9 18 9 17.5 6" stroke="#f43f5e"/></svg>
+                <span class="caret-tick">▾</span>
+            </button>
+            <button data-navy-item="chem_special_hub" onclick="handleSpecialHubClick(event)" id="cd-chem_special_hub" class="gn-main-tool" title="Cấu dạng 3D, Vân đạo Orbital & Điện tích e⁻ (⊕ ⊖ • ••)">
+                <svg id="specialHubBtnIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><polyline points="3 16 8 10 13 13 20 8 15 14 10 11 3 16"/><circle cx="17.5" cy="17.5" r="3.5"/><line x1="17.5" y1="15.8" x2="17.5" y2="19.2"/><line x1="15.8" y1="17.5" x2="19.2" y2="17.5"/></svg>
+                <span class="caret-tick">▾</span>
+            </button>
+            <button data-navy-item="chem_text" onclick="selectChemDrawTool('chem_text')" id="cd-chem_text" class="gn-main-tool" title="Gõ chữ & Điều kiện phản ứng">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></svg>
+            </button>
+            <button data-navy-item="pen_image" onclick="handleImageToolBtnClick(event)" id="sp-image" class="gn-main-tool" title="Gắn & Quản lý Ảnh trên trang">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2.5"/><circle cx="8.5" cy="8.5" r="1.6"/><path d="m21 15-5-5L5 21"/></svg>
+            </button>
+            <button data-navy-item="pen_laser" onclick="selectPillPenMode('laser', event)" id="sp-laser" class="gn-main-tool" title="Bút Laser thuyết trình (Giữ nét tới khi đổi bút)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 4V2M15 16v-2M8 9h2M20 9h2M3 21l9-9"/></svg>
+            </button>
+
+            <button data-navy-item="add_page" id="nt-item-add_page" onclick="addNewPageToActiveNotebook()" class="gn-main-tool" title="Thêm trang giấy mới">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
+            </button>
+            <button data-navy-item="export_png" id="nt-item-export_png" onclick="exportCurrentPagePNG()" class="gn-main-tool" title="Xuất ảnh PNG">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+            </button>
+        </div>
+
+        <div class="flex items-center gap-1 flex-shrink-0">
+            <div class="v-sep"></div>
+            <button onclick="toggleNavyToolbarConfigPopover(event)" id="navyToolbarConfigBtn" class="gn-main-tool" title="Tùy chỉnh & sắp xếp Thanh Hub Công cụ & Viên thuốc">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="17" x2="20" y2="17"/><circle cx="9" cy="7" r="2.2" fill="currentColor"/><circle cx="15" cy="17" r="2.2" fill="currentColor"/></svg>
+            </button>
+            <button onclick="toggleAppFullscreen(false)" id="exitFullscreenFocusBtn" class="gn-main-tool fs-exit-btn hidden" title="Thoát chế độ Toàn màn hình (Hiện lại thanh Tab & Cài đặt)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+            </button>
+        </div>
+    </nav>
+
+    <!-- HÀNG 3: THANH VIÊN THUỐC BÚT VIẾT GOODNOTES (DI CHUYỂN, PHÓNG TO/NHỎ & TÙY CHỈNH) -->
+    <div id="penSubtoolbarRow" class="gn-subtoolbar-wrap" onclick="event.stopPropagation()">
+        <div id="penPillWidget" class="gn-pill-widget">
+            <div id="pp-item-undo_redo" class="gn-undo-cluster">
+                <button onclick="undoAction()" class="gn-sub-pen" title="Hoàn tác (Ctrl+Z)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+                </button>
+                <button onclick="redoAction()" class="gn-sub-pen" title="Làm lại (Ctrl+Y)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7"/></svg>
+                </button>
+            </div>
+
+            <div id="penPillBar" class="gn-pill-bar">
+                <button onpointerdown="startPillDrag('pen', event)" class="pill-drag-handle" title="Kéo để di chuyển viên thuốc ra mọi vị trí">⋮⋮</button>
+                <button data-pill-item="carbon" onclick="selectPillCarbonMode(event)" id="sp-carbon" class="gn-sub-pen" title="Vẽ nhanh Mạch Carbon C–C (Đặt ngay cạnh bút)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="3 16 8 9 14 14 21 7"/><circle cx="3" cy="16" r="1.4" fill="currentColor" stroke="none"/><circle cx="8" cy="9" r="1.4" fill="currentColor" stroke="none"/><circle cx="14" cy="14" r="1.4" fill="currentColor" stroke="none"/><circle cx="21" cy="7" r="1.4" fill="currentColor" stroke="none"/></svg>
+                </button>
+                <button data-pill-item="ballpoint" onclick="selectPillPenMode('ballpoint', event)" id="sp-ballpoint" class="gn-sub-pen active" title="Bút máy Notewise / Bút viết chính (Nhấn lại để đổi loại ngòi, cỡ nét, độ mượt)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.06 11.9l8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"/><path d="M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1.08 1.1 2.49 2.02 4 2.02 2.2 0 4-1.8 4-4.04a3.01 3.01 0 0 0-3-3.02z"/></svg><span class="pill-caret">▾</span>
+                </button>
+                <button data-pill-item="highlighter" onclick="selectPillPenMode('highlighter', event)" id="sp-highlighter" class="gn-sub-pen" title="Dạ quang (Size riêng • Nhấn lại để chỉnh cỡ nét, độ đậm)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 11-6 6v3h9l3-3"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg><span class="pill-caret">▾</span>
+                </button>
+                <button data-pill-item="eraser" onclick="selectPillPenMode('eraser', event)" id="sp-eraser" class="gn-sub-pen" title="Tẩy (Chạm 2 lần màn hình để bật/tắt • Nhấn lại để chỉnh cỡ vùng tẩy)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg><span class="pill-caret">▾</span>
+                </button>
+                <button data-pill-item="lasso" onclick="selectPillPenMode('lasso', event)" id="sp-lasso" class="gn-sub-pen" title="Khoanh vùng Lasso">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="2.5 2.5"><path d="M12 3C7 3 3 6.5 3 11.5S6.5 20 12 20s9-3.5 9-8.5S17 3 12 3z"/></svg>
+                </button>
+                <button data-pill-item="pan" onclick="selectPillPenMode('pan', event)" id="sp-pan" class="gn-sub-pen hidden" title="Bàn tay Kéo / Di chuyển bảng (Hoặc Chuột phải / Giữ Space · Phím X)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-4 0"/><path d="M14 10V4a2 2 0 0 0-4 0v6"/><path d="M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.6 0-4.2-.8-5.7-2.4L3.2 15.8a2 2 0 0 1 2.8-2.8L8 15"/></svg>
+                </button>
+
+                <div data-pill-item="stroke_slots" id="pp-item-stroke_slots" class="pill-group-inner">
+                    <div class="v-divider"></div>
+                    <button onclick="setQuickStrokeSlot(1, 1.8, event)" id="st-slot-1" class="stroke-slot" title="Nét mảnh"><span class="stroke-line" style="height:2px;"></span></button>
+                    <button onclick="setQuickStrokeSlot(2, 2.8, event)" id="st-slot-2" class="stroke-slot active" title="Nét vừa"><span class="stroke-line" style="height:3.5px;"></span></button>
+                    <button onclick="setQuickStrokeSlot(3, 5.0, event)" id="st-slot-3" class="stroke-slot" title="Nét đậm"><span class="stroke-line" style="height:6px;"></span></button>
+                </div>
+
+                <div data-pill-item="color_wells" id="pp-item-color_wells" class="pill-group-inner">
+                    <div class="v-divider"></div>
+                    <div id="favColorWellsRow" class="flex items-center gap-1.5"></div>
+                </div>
+
+                <div id="penPillEndDivider" class="v-divider"></div>
+                <button onclick="togglePenPillOrientation(event)" id="penPillOrientBtn" class="gn-sub-pen" title="Xoay ngang / dọc viên thuốc">⇄</button>
+                <button onclick="togglePenPillConfigPopover(event)" id="penPillConfigBtn" class="gn-sub-pen" title="Tùy chỉnh vị trí, kích cỡ & công cụ viên thuốc bút">⚙</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CÁC BẢNG POPOVER TÙY CHỈNH GIAO DIỆN & VIÊN THUỐC -->
+    <div id="appSettingsMenuPopover" onclick="event.stopPropagation()" class="hidden gn-popover-card" style="width:min(286px, 92vw);">
+        <div class="paper-sec-title mb-2">CHỨC NĂNG KHÁC</div>
+        <div class="space-y-1.5 text-[11px] font-bold">
+            <div class="grid grid-cols-3 gap-1.5">
+                <button onclick="closeAllPopovers(); fitA4ToScreen();" id="menuFitPageBtn" class="settings-menu-row justify-center px-1.5" title="Zoom vừa khít trang giấy vào màn hình (Ctrl+0)">⛶ Vừa trang</button>
+                <button onclick="closeAllPopovers(); toggleReadMode();" id="readModeBtn" class="settings-menu-row justify-center px-1.5" title="Chế độ Đọc (Phím M)">📖 Đọc</button>
+                <button onclick="closeAllPopovers(); toggleAppFullscreen();" id="fullscreenToggleBtn" class="settings-menu-row justify-center px-1.5" title="Toàn màn hình">⛶ Toàn màn</button>
+            </div>
+            <button onclick="openLabFromSettings(event)" id="menuLabBtn" class="settings-menu-row">
+                <span>🧪 Thí nghiệm ảo &amp; Dụng cụ</span>
+                <span class="settings-row-sub">7 Mô phỏng</span>
+            </button>
+            <button onclick="closeAllPopovers(); openPeriodicHubModal();" id="settingsPeriodicBtn" class="settings-menu-row">
+                <span>⚛ Bảng Tuần Hoàn &amp; Tính M</span>
+                <span class="settings-row-sub">118 Ng.tố</span>
+            </button>
+            <button onclick="closeAllPopovers(); openNameReactionsHubModal();" id="settingsNameReactionsBtn" class="settings-menu-row">
+                <span>📚 Kho Name Reactions</span>
+                <span class="settings-row-sub">185 Phản Ứng</span>
+            </button>
+            <button onclick="closeAllPopovers(); openReagentsHubModal();" id="settingsReagentsBtn" class="settings-menu-row">
+                <span>🧪 Sổ Tay Tác Nhân (Chu Văn Phòng)</span>
+                <span class="settings-row-sub">331 CTCT</span>
+            </button>
+            <button onclick="toggleNavyToolbarConfigPopover(event)" id="menuToolbarConfigBtn" class="settings-menu-row">
+                <span>🛠 Tùy chỉnh Hub &amp; Viên thuốc</span>
+                <span class="settings-row-sub">Ẩn / Đổi chỗ</span>
+            </button>
+            <button onclick="closeAllPopovers(); openHelpHotkeysModal('touch');" id="ipadTouchSettingsBtn" class="settings-menu-row">
+                <span>✋ Cảm ứng &amp; Chuột</span>
+                <span class="settings-row-sub">Cử chỉ / Zoom</span>
+            </button>
+            <button onclick="toggleAppThemePopover(event)" id="appThemeBtn" class="settings-menu-row">
+                <span>🎨 Tone màu ứng dụng</span>
+                <span class="settings-row-sub">10 Giao diện</span>
+            </button>
+            <button onclick="closeAllPopovers(); openHelpHotkeysModal('guide');" id="helpGuideBtn" class="settings-menu-row">
+                <span>❓ Hướng dẫn &amp; Phím tắt</span>
+                <span class="settings-row-sub">Phím ?</span>
+            </button>
+            <button onclick="closeAllPopovers(); openVersionUpdateHub();" id="settingsVersionUpdateBtn" class="settings-menu-row">
+                <span>🔄 Cập nhật &amp; Tính năng</span>
+                <span id="settingsVersionUpdateBadge" class="settings-row-sub text-sky-300 font-extrabold">v15.15</span>
+            </button>
+            <div class="pt-1 border-t border-black/15 space-y-1.5">
+                <button onclick="closeAllPopovers(); openSupportCommunityModal('donate');" id="settingsDonateAppBtn" class="settings-menu-row support-settings-row" title="Mở QR VietQR BIDV ủng hộ phát triển app">
+                    <span>❤️ Ủng hộ app nếu thấy hay</span>
+                    <span class="settings-row-sub">QR BIDV</span>
+                </button>
+                <button onclick="closeAllPopovers(); openSupportCommunityModal('zalo');" id="settingsZaloGroupBtn" class="settings-menu-row zalo-settings-row" title="Link & Mã QR vào nhóm Zalo Cộng đồng chemnote">
+                    <span>💬 Nhóm Zalo Cộng đồng</span>
+                    <span class="settings-row-sub">Link &amp; QR</span>
+                </button>
+            </div>
+            <div class="grid grid-cols-2 gap-1.5 pt-1 border-t border-black/15">
+                <button onclick="closeAllPopovers(); triggerImportNotebookFile();" class="settings-menu-row justify-center" title="Mở file .chemnotes">📁 Mở tệp</button>
+                <button onclick="closeAllPopovers(); exportActiveNotebookFile();" class="settings-menu-row justify-center" title="Lưu file .chemnotes">💾 Lưu tệp</button>
+            </div>
+            <div class="grid grid-cols-2 gap-1.5">
+                <button onclick="closeAllPopovers(); exportActiveNotebookPDF();" id="settingsExportPdfBtn" class="settings-menu-row justify-center" title="In / Xuất toàn bộ quyển sổ hiện tại thành PDF nhiều trang">🖨️ Xuất PDF</button>
+                <button onclick="closeAllPopovers(); shareCurrentPagePNG();" id="settingsSharePngBtn" class="settings-menu-row justify-center" title="Chia sẻ nhanh ảnh PNG trang hiện tại (AirDrop / Zalo / Lưu ảnh)">📤 Chia sẻ PNG</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="appThemePopover" onclick="event.stopPropagation()" class="hidden gn-popover-card" style="width:min(300px, 92vw);">
+        <div class="paper-sec-title mb-2">TONE MÀU ỨNG DỤNG</div>
+        <div id="appThemeList" class="space-y-1.5"></div>
+    </div>
+
+    <div id="penPillConfigPopover" onclick="event.stopPropagation()" class="hidden gn-popover-card" style="width:min(365px, 94vw);">
+        <div class="space-y-3 text-[11px] font-bold text-slate-300">
+            <div>
+                <div class="flex items-center justify-between mb-1.5">
+                    <span class="paper-sec-title mb-0">VỊ TRÍ NEO VIÊN THUỐC BÚT</span>
+                    <button onclick="togglePenPillOrientation(event)" class="paper-mini-btn px-2">Chiều: <span id="penPillOrientLbl">Ngang</span></button>
+                </div>
+                <div id="penPillDockGrid" class="grid grid-cols-3 gap-1.5"></div>
+            </div>
+            <div class="sep-line"></div>
+            <div>
+                <div class="flex items-center justify-between mb-1">
+                    <span class="paper-sec-title mb-0">KÍCH THƯỚC VIÊN THUỐC</span>
+                    <span id="penPillScaleValLbl" class="text-sky-400">100%</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <button onclick="onPenPillScaleChange((appLibrary.penPillConfig?.scale || 1) - 0.08)" class="paper-mini-btn px-2.5">−</button>
+                    <input id="penPillScaleSlider" type="range" min="0.75" max="1.35" step="0.05" value="1" oninput="onPenPillScaleChange(this.value)" class="gn-slider flex-1" />
+                    <button onclick="onPenPillScaleChange((appLibrary.penPillConfig?.scale || 1) + 0.08)" class="paper-mini-btn px-2.5">+</button>
+                    <button onclick="onPenPillScaleChange(1.0)" class="paper-mini-btn px-2">100%</button>
+                </div>
+            </div>
+            <div class="sep-line"></div>
+            <div>
+                <div class="flex items-center justify-between mb-1.5">
+                    <span class="paper-sec-title mb-0">ẨN / HIỆN &amp; ĐỔI THỨ TỰ NÚT VIÊN THUỐC</span>
+                    <button onclick="resetPenPillConfig()" class="paper-mini-btn px-2 text-[10px]">Mặc định</button>
+                </div>
+                <div id="penPillItemsChecklist" class="toolbar-cfg-list space-y-1 max-h-[34vh] overflow-y-auto pr-0.5"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="navyToolbarConfigPopover" onclick="event.stopPropagation()" class="hidden gn-popover-card" style="width:min(365px, 94vw);">
+        <div class="space-y-3 text-[11px] font-bold text-slate-300">
+            <div class="flex items-center justify-between gap-2">
+                <span class="paper-sec-title mb-0">TÙY CHỈNH THANH HUB CÔNG CỤ</span>
+                <div class="flex items-center gap-1.5">
+                    <button onclick="togglePenPillConfigPopover(event)" class="paper-mini-btn px-2 text-[10px] text-sky-300">⚙ Viên thuốc</button>
+                    <button onclick="resetNavyToolbarConfig()" class="paper-mini-btn px-2 text-[10px]">Mặc định</button>
+                </div>
+            </div>
+            <p class="text-[10px] text-slate-400 font-medium leading-snug -mt-1">
+                Bấm nút để ẩn/hiện trên Thanh Hub phía trên; bấm ▲ / ▼ để sắp xếp lại vị trí trái – phải.
+            </p>
+            <div id="navyToolbarItemsChecklist" class="toolbar-cfg-list space-y-1 max-h-[44vh] overflow-y-auto pr-0.5"></div>
+        </div>
+    </div>
+
+    <!-- CÁC BẢNG POPOVER THUẦN BIỂU TƯỢNG -->
+    <div id="paperTemplatePopover" onclick="event.stopPropagation()" class="hidden gn-popover-card" style="width:min(350px, 94vw);">
+        <div class="space-y-3 text-[11px] font-bold text-slate-300">
+            <div>
+                <div class="paper-sec-title">MẪU GIẤY</div>
+                <div id="paperTemplateGrid" class="grid grid-cols-3 gap-1.5">
+                    <button onclick="setPaperTemplate('grid')" data-tpl="grid" class="chip-btn text-xs">Ô vuông</button>
+                    <button onclick="setPaperTemplate('dots')" data-tpl="dots" class="chip-btn text-xs">Chấm</button>
+                    <button onclick="setPaperTemplate('lined')" data-tpl="lined" class="chip-btn text-xs">Kẻ ngang</button>
+                    <button onclick="setPaperTemplate('cornell')" data-tpl="cornell" class="chip-btn text-xs">Cornell</button>
+                    <button onclick="setPaperTemplate('hex')" data-tpl="hex" class="chip-btn text-xs">Lục giác</button>
+                    <button onclick="setPaperTemplate('blank')" data-tpl="blank" class="chip-btn text-xs">Trắng</button>
+                </div>
+            </div>
+
+            <div class="sep-line"></div>
+
+            <div>
+                <div class="paper-sec-title">CỠ GIẤY</div>
+                <div id="paperSizeGrid" class="grid grid-cols-3 gap-1.5"></div>
+            </div>
+
+            <div class="sep-line"></div>
+
+            <div>
+                <div class="flex items-center justify-between mb-1.5">
+                    <span class="paper-sec-title mb-0">MÀU NỀN GIẤY</span>
+                    <label class="flex items-center gap-1.5 text-[10px] text-slate-400 cursor-pointer">
+                        <span>Tùy chọn</span>
+                        <input id="customPaperBgInput" type="color" value="#fcfaf2" oninput="setPaperBgColor(this.value)" class="w-6 h-5 rounded border border-slate-600 bg-transparent cursor-pointer" />
+                    </label>
+                </div>
+                <div id="paperBgColorGrid" class="flex items-center flex-wrap gap-2"></div>
+            </div>
+
+            <div class="sep-line"></div>
+
+            <div>
+                <div class="flex items-center justify-between mb-1">
+                    <span class="paper-sec-title mb-0">KHOẢNG CÁCH Ô / DÒNG</span>
+                    <span id="paperSpacingValLbl" class="text-sky-400">28 px</span>
+                </div>
+                <input id="paperSpacingSlider" type="range" min="14" max="60" step="2" value="28" oninput="onPaperSpacingChange(this.value)" class="gn-slider mb-1.5" />
+                <div class="grid grid-cols-3 gap-1.5">
+                    <button onclick="onPaperSpacingChange(18)" class="paper-mini-btn">Nhỏ (18px)</button>
+                    <button onclick="onPaperSpacingChange(28)" class="paper-mini-btn">Chuẩn (28px)</button>
+                    <button onclick="onPaperSpacingChange(40)" class="paper-mini-btn">Rộng (40px)</button>
+                </div>
+            </div>
+
+            <div>
+                <div class="flex items-center justify-between mb-1">
+                    <span class="paper-sec-title mb-0">ĐỘ ĐẬM NÉT KẺ</span>
+                    <span id="paperLineOpacityValLbl" class="text-sky-400">28%</span>
+                </div>
+                <input id="paperLineOpacitySlider" type="range" min="0.10" max="0.70" step="0.04" value="0.28" oninput="onPaperLineOpacityChange(this.value)" class="gn-slider" />
+            </div>
+
+            <div class="flex items-center justify-between gap-2 pt-1">
+                <span class="paper-sec-title mb-0">TỰ ĐỘNG TẠO TRANG MỚI</span>
+                <button onclick="toggleAutoAddPage()" id="autoAddPageToggleBtn" class="paper-mini-btn px-2.5 active">Đang bật</button>
+            </div>
+
+            <button onclick="applyPaperSettingsToAllPages()" class="w-full py-2 rounded-lg bg-sky-600/25 hover:bg-sky-600/40 border border-sky-500/50 text-sky-200 text-[11px] font-bold transition">
+                Áp dụng cho tất cả trang trong sổ
+            </button>
+        </div>
+    </div>
+
+    <div id="labEquipmentPopover" onclick="event.stopPropagation()" class="hidden gn-popover-card" style="width:min(700px, 95vw);z-index:245;">
+        <div class="lab-popover-top">
+            <div class="flex items-center gap-2 flex-wrap">
+                <span class="paper-sec-title mb-0">THÍ NGHIỆM ẢO &amp; DỤNG CỤ (16 MẪU)</span>
+                <button onclick="closeAllPopovers(); addPaperLabWidgetToActivePage('titration');" id="pinMiniLabToPaperBtn" class="lab-launch-btn sky" title="Đặt bảng thí nghiệm tương tác trực tiếp ngay trên trang giấy trắng">📄 Thí nghiệm trên Giấy Trắng</button>
+                <button onclick="closeAllPopovers(); openMiniChemLab('titration');" id="openMiniLabBtn" class="lab-launch-btn emerald">🧪 Phòng Thí Nghiệm Toàn Cảnh</button>
+            </div>
+            <div id="labLiquidColorRow" class="flex items-center gap-1.5"></div>
+        </div>
+        <div class="lab-exp-quick-strip no-scrollbar">
+            <button onclick="closeAllPopovers(); addPaperLabWidgetToActivePage('titration');" class="lab-exp-quick-chip">⚗️ Chuẩn độ</button>
+            <button onclick="closeAllPopovers(); addPaperLabWidgetToActivePage('precipitate');" class="lab-exp-quick-chip">🧪 Kết tủa (8)</button>
+            <button onclick="closeAllPopovers(); addPaperLabWidgetToActivePage('gas');" class="lab-exp-quick-chip">🫧 Na+H₂O / Khí</button>
+            <button onclick="closeAllPopovers(); addPaperLabWidgetToActivePage('rutherford');" class="lab-exp-quick-chip">⚛️ Hạt α Rutherford</button>
+            <button onclick="closeAllPopovers(); addPaperLabWidgetToActivePage('flame');" class="lab-exp-quick-chip">🔥 Ngọn lửa</button>
+            <button onclick="closeAllPopovers(); addPaperLabWidgetToActivePage('silver_mirror');" class="lab-exp-quick-chip">🪞 Tráng bạc</button>
+            <button onclick="closeAllPopovers(); addPaperLabWidgetToActivePage('electrolysis');" class="lab-exp-quick-chip">⚡ Điện phân</button>
+        </div>
+        <div id="labEquipmentGrid" class="lab-eq-grid"></div>
+        <div class="text-[10px] mt-2 leading-snug" style="color:var(--text-muted);">Bấm chip thí nghiệm để chạy ngay trên giấy trắng • Hoặc chọn dụng cụ bên dưới rồi chạm giấy để vẽ sơ đồ.</div>
+    </div>
+
+    <div id="bondLengthPopover" onclick="event.stopPropagation()" class="hidden gn-popover-card" style="width:276px;">
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-[11px] font-bold text-slate-300">Độ dài liên kết C–C</span>
+            <span id="bondLenValLabel" class="text-[11px] font-extrabold text-sky-400">44 px</span>
+        </div>
+        <div class="flex items-center gap-2 mb-2.5">
+            <button onclick="setBondLengthValue((parseInt(BOND_LENGTH,10)||44)-2, false)" class="chip-btn" style="width:28px;height:28px;font-size:14px;font-weight:800;" title="Giảm 2 px">−</button>
+            <input id="bondLenSlider" type="range" min="22" max="90" step="2" value="44" oninput="setBondLengthValue(this.value, false)" class="flex-1 accent-sky-400 cursor-pointer">
+            <button onclick="setBondLengthValue((parseInt(BOND_LENGTH,10)||44)+2, false)" class="chip-btn" style="width:28px;height:28px;font-size:14px;font-weight:800;" title="Tăng 2 px">+</button>
+        </div>
+        <div class="grid grid-cols-6 gap-1">
+            <button onclick="setBondLengthValue(28, true)" data-bondlen="28" class="chip-btn text-[11px]">28</button>
+            <button onclick="setBondLengthValue(36, true)" data-bondlen="36" class="chip-btn text-[11px]">36</button>
+            <button onclick="setBondLengthValue(44, true)" data-bondlen="44" class="chip-btn text-[11px]">44</button>
+            <button onclick="setBondLengthValue(54, true)" data-bondlen="54" class="chip-btn text-[11px]">54</button>
+            <button onclick="setBondLengthValue(64, true)" data-bondlen="64" class="chip-btn text-[11px]">64</button>
+            <button onclick="setBondLengthValue(76, true)" data-bondlen="76" class="chip-btn text-[11px]">76</button>
+        </div>
+    </div>
+
+    <div id="ringHubPopover" onclick="event.stopPropagation()" class="hidden gn-popover-card" style="width:min(780px, 94vw);">
+        <div class="flex items-center gap-2 mb-2.5">
+            <input id="ringSearchInput" type="text" placeholder="Tìm vòng hoặc dị vòng (VD: Pyridin, Indol, THF...)" oninput="renderRingHubGrid()" class="w-full h-8 px-3 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-sky-400" />
+        </div>
+        <div id="ringHubGrid" class="ring-horiz-grid"></div>
+        <div id="customSnippetsSection" class="hidden">
+            <div class="sep-line"></div>
+            <div class="text-[10px] font-extrabold tracking-wide text-sky-300 mb-1.5">★ MẪU CẤU TRÚC CỦA TÔI</div>
+            <div id="customSnippetsGrid" class="ring-horiz-grid" style="max-height:22vh;"></div>
+        </div>
+    </div>
+
+    <div id="penSettingsPopover" onclick="event.stopPropagation()" class="hidden gn-popover-card" style="width:276px;">
+        <div id="penSettingsSection">
+            <div id="penStyleGrid" class="grid-4 mb-2"></div>
+            <div id="fountainNibAngleRow" class="hidden mb-2 p-1.5 rounded-lg bg-slate-900/65 border border-slate-700/70">
+                <div class="text-[10px] font-bold text-sky-300 mb-1">Kiểu ngòi Bút máy Notewise (Thanh – Đậm)</div>
+                <div class="grid grid-cols-2 gap-1">
+                    <button onclick="setFountainNibAngle(90)" id="nibAngle90Btn" class="chip-btn text-[10.5px]">Notewise Chuẩn</button>
+                    <button onclick="setFountainNibAngle(35)" id="nibAngle35Btn" class="chip-btn text-[10.5px]">35° Nghiêng cổ điển</button>
+                </div>
+            </div>
+            <div class="sep-line"></div>
+            <div class="space-y-2.5 text-[11px] font-bold text-slate-300">
+                <div>
+                    <div class="flex justify-between mb-1"><span>Cỡ nét bút</span><span id="penWidthValLbl" class="text-sky-400">2.8 px</span></div>
+                    <input id="penWidthSlider" type="range" min="1" max="16" step="0.2" value="2.8" oninput="onPenWidthChange(this.value)" class="gn-slider" />
+                </div>
+                <div>
+                    <div class="flex justify-between mb-1"><span>Chống run tay &amp; Làm mượt nét</span><span id="penSmoothValLbl" class="text-sky-400">50%</span></div>
+                    <input id="penSmoothSlider" type="range" min="0" max="0.95" step="0.05" value="0.50" oninput="onPenSmoothingChange(this.value)" class="gn-slider" />
+                    <div class="grid grid-cols-4 gap-1 mt-1.5">
+                        <button onclick="setPenSmoothingPreset(0)" id="smoothPresetBtn0" class="chip-btn text-[10px] py-1">Thô</button>
+                        <button onclick="setPenSmoothingPreset(0.30)" id="smoothPresetBtn30" class="chip-btn text-[10px] py-1">Nhẹ</button>
+                        <button onclick="setPenSmoothingPreset(0.55)" id="smoothPresetBtn55" class="chip-btn text-[10px] py-1">Mịn</button>
+                        <button onclick="setPenSmoothingPreset(0.80)" id="smoothPresetBtn80" class="chip-btn text-[10px] py-1">Siêu mịn</button>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between mb-1"><span>Độ đậm</span><span id="penOpacityValLbl" class="text-sky-400">100%</span></div>
+                    <input id="penOpacitySlider" type="range" min="0.2" max="1" step="0.05" value="1" oninput="onPenOpacityChange(this.value)" class="gn-slider" />
+                </div>
+                <div class="sep-line"></div>
+                <button onclick="toggleAutoPolishInkSetting()" id="autoPolishInkToggleBtn" class="chip-btn w-full justify-between px-2.5 text-[11px]" title="Tự triệt tiêu rung tay, xoá râu đầu/đuôi nét và nắn nhẹ nét thẳng giúp chữ viết tay gọn gàng hơn">
+                    <span>Tự nắn đẹp nét chữ</span>
+                    <span id="autoPolishInkBadge" class="text-emerald-400 font-extrabold">BẬT</span>
+                </button>
+                <button onclick="toggleHoldToShapeSetting()" id="holdToShapeToggleBtn" class="chip-btn w-full justify-between px-2.5 text-[11px]">
+                    <span>Giữ cuối nét → Tự thành hình</span>
+                    <span id="holdToShapeBadge" class="text-emerald-400 font-extrabold">BẬT</span>
+                </button>
+                <button onclick="toggleAutoZigZagCarbonSetting()" id="autoZigZagCarbonToggleBtn" class="chip-btn w-full justify-between px-2.5 text-[11px]">
+                    <span>Vẽ gấp khúc → Mạch Carbon</span>
+                    <span id="autoZigZagCarbonBadge" class="text-emerald-400 font-extrabold">BẬT</span>
+                </button>
+            </div>
+        </div>
+        <div id="highlighterSettingsSection" class="hidden space-y-2.5 text-[11px] font-bold text-slate-300">
+            <div class="flex items-center justify-between">
+                <span>Cỡ nét Dạ quang (Độc lập)</span>
+                <span id="highlighterWidthValLbl" class="text-sky-400">14 px</span>
+            </div>
+            <input id="highlighterWidthSlider" type="range" min="4" max="44" step="1" value="14" oninput="onHighlighterWidthChange(this.value)" class="gn-slider" />
+            <div class="grid grid-cols-3 gap-1.5">
+                <button onclick="setQuickStrokeSlot(1, 8, null, false, true)" id="hlPresetBtn1" class="chip-btn text-[11px]">Mảnh 8</button>
+                <button onclick="setQuickStrokeSlot(2, 14, null, false, true)" id="hlPresetBtn2" class="chip-btn text-[11px]">Vừa 14</button>
+                <button onclick="setQuickStrokeSlot(3, 24, null, false, true)" id="hlPresetBtn3" class="chip-btn text-[11px]">To 24</button>
+            </div>
+            <div>
+                <div class="flex justify-between mb-1"><span>Độ sáng đậm dạ quang</span><span id="highlighterOpacityValLbl" class="text-sky-400">50%</span></div>
+                <input id="highlighterOpacitySlider" type="range" min="0.15" max="0.75" step="0.02" value="0.50" oninput="onHighlighterOpacityChange(this.value)" class="gn-slider" />
+            </div>
+            <div class="text-[10px] text-slate-400 leading-snug">
+                Bút Dạ quang có 5 ô màu sáng riêng &amp; hòa trộn Multiply nằm dưới chữ nên chữ đen và công thức hóa học luôn sắc nét, không bị dìm hay lem. Ấn đúp ô màu để đổi màu!
+            </div>
+        </div>
+        <div id="eraserSettingsSection" class="hidden space-y-2.5 text-[11px] font-bold text-slate-300">
+            <div class="flex items-center justify-between">
+                <span>Bán kính vùng tẩy</span>
+                <span id="eraserRadiusValLbl" class="text-sky-400">24 px</span>
+            </div>
+            <input id="eraserRadiusSlider" type="range" min="6" max="72" step="1" value="24" oninput="onEraserRadiusChange(this.value)" class="gn-slider" />
+            <div class="grid grid-cols-3 gap-1.5">
+                <button onclick="setQuickStrokeSlot(1, 12, null, true)" id="eraserPresetBtn1" class="chip-btn text-[11px]">Nhỏ</button>
+                <button onclick="setQuickStrokeSlot(2, 24, null, true)" id="eraserPresetBtn2" class="chip-btn text-[11px]">Vừa</button>
+                <button onclick="setQuickStrokeSlot(3, 42, null, true)" id="eraserPresetBtn3" class="chip-btn text-[11px]">Lớn</button>
+            </div>
+            <div class="sep-line"></div>
+            <button onclick="toggleScribbleEraseSetting()" id="scribbleEraseToggleBtn" class="chip-btn w-full justify-between px-2.5 text-[11px]">
+                <span>Nguệch ngoạc xoá nét</span>
+                <span id="scribbleEraseBadge" class="text-emerald-400 font-extrabold">BẬT</span>
+            </button>
+            <div class="text-[10px] text-slate-400 leading-snug">
+                Mẹo Goodnotes: Gạch zíc-zắc ngắn trực tiếp lên nét cần xoá để xoá chuẩn xác không lan nét bên cạnh.
+            </div>
+        </div>
+    </div>
+
+    <div id="colorPalettePopover" onclick="event.stopPropagation()" class="hidden gn-popover-card" style="width:288px;">
+        <div class="flex items-center justify-between gap-2 mb-2">
+            <span id="colorPaletteEditingTitle" class="text-[11px] font-extrabold text-sky-300">Đổi màu Ô #1</span>
+            <div id="paletteFavSlotStrip" class="flex items-center gap-1"></div>
+        </div>
+        <div id="colorPaletteGrid" class="grid-6 mb-2"></div>
+        <div class="sep-line"></div>
+        <div id="colorPresetHeading" class="text-[10px] font-extrabold text-slate-400 mb-1.5">BỘ MÀU TƯƠI SÁNG ĐỀ XUẤT (1 CHẠM ĐỔI 5 Ô)</div>
+        <div id="colorPresetStrips" class="grid grid-cols-2 gap-1.5 mb-2"></div>
+        <div class="sep-line"></div>
+        <label class="flex items-center justify-between gap-2 text-[11px] font-bold text-slate-300 cursor-pointer px-1">
+            <span>Chọn màu tùy ý</span>
+            <input id="customPenColorInput" type="color" value="#111827" oninput="pickColorFromPalette(this.value)" class="w-9 h-6 rounded border border-slate-600 bg-transparent cursor-pointer" />
+        </label>
+    </div>
+
+    <div id="stereoHubPopover" onclick="event.stopPropagation()" class="hidden gn-popover-card" style="width:286px;">
+        <div class="paper-sec-title mb-2">LIÊN KẾT LẬP THỂ 3D</div>
+        <div class="grid grid-cols-2 gap-2">
+            <button onclick="pickStereoBond('chem_wedge')" id="stereoBtnWedge" class="stereo-choice-btn active">
+                <svg viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6"><polygon points="4,20 17,4 21,8"/></svg>
+                <div>
+                    <div class="text-[11.5px] font-extrabold">Nét Thanh</div>
+                    <div class="text-[9.5px] opacity-75">Hướng ra trước</div>
+                </div>
+            </button>
+            <button onclick="pickStereoBond('chem_dash')" id="stereoBtnDash" class="stereo-choice-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="w-6 h-6"><line x1="5" y1="19" x2="6" y2="18"/><line x1="8" y1="15" x2="10" y2="17"/><line x1="11" y1="11" x2="14" y2="14"/><line x1="14" y1="7" x2="18" y2="11"/><line x1="17" y1="3" x2="22" y2="8"/></svg>
+                <div>
+                    <div class="text-[11.5px] font-extrabold">Nét Gạch</div>
+                    <div class="text-[9.5px] opacity-75">Hướng ra sau</div>
+                </div>
+            </button>
+        </div>
+    </div>
+
+    <div id="arrowHubPopover" onclick="event.stopPropagation()" class="hidden gn-popover-card" style="width:min(330px, 94vw);">
+        <div class="space-y-2.5">
+            <div>
+                <div class="hub-section-label">MŨI TÊN PHẢN ỨNG</div>
+                <div id="rxnArrowGrid" class="grid-4"></div>
+            </div>
+            <div class="sep-line"></div>
+            <div>
+                <div class="hub-section-label">MŨI TÊN CONG CƠ CHẾ DI CHUYỂN ELECTRON (e⁻)</div>
+                <div id="mechArrowGrid" class="grid-4"></div>
+            </div>
+            <div class="sep-line"></div>
+            <button onclick="closeAllPopovers(); openNameReactionsHubModal();" id="arrowHubNameReactionsBtn" class="w-full py-1.5 px-2.5 rounded-lg text-[11px] font-extrabold text-sky-300 hover:text-white bg-sky-500/15 hover:bg-sky-600/35 border border-sky-400/30 flex items-center justify-center gap-1.5 transition">
+                <span>📚 Tra cứu 185 Name Reactions (Chất đầu / Cơ chế)</span>
+            </button>
+            <button onclick="closeAllPopovers(); openReagentsHubModal();" id="arrowHubReagentsBtn" class="w-full py-1.5 px-2.5 rounded-lg text-[11px] font-extrabold text-emerald-300 hover:text-white bg-emerald-500/15 hover:bg-emerald-600/35 border border-emerald-400/30 flex items-center justify-center gap-1.5 transition">
+                <span>🧪 Sổ Tay 331 Tác Nhân (Tác giả: Chu Văn Phòng)</span>
+            </button>
+        </div>
+    </div>
+
+    <div id="specialHubPopover" onclick="event.stopPropagation()" class="hidden gn-popover-card" style="width:min(340px, 94vw); max-height:70vh;">
+        <div class="space-y-2.5">
+            <div>
+                <div class="hub-section-label">CẤU DẠNG &amp; PHÉP CHIẾU 3D</div>
+                <div id="conformerGrid" class="grid-4"></div>
+            </div>
+            <div class="sep-line"></div>
+            <div>
+                <div class="hub-section-label">VÂN ĐẠO ORBITAL</div>
+                <div id="orbitalGrid" class="grid-4"></div>
+            </div>
+            <div class="sep-line"></div>
+            <div>
+                <div class="hub-section-label">ĐIỆN TÍCH &amp; KÝ HIỆU ELECTRON (e⁻)</div>
+                <div id="symbolGrid" class="grid-4"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="presenterPopover" onclick="event.stopPropagation()" class="hidden gn-popover-card" style="width:min(330px, 94vw);">
+        <div class="space-y-2.5 text-[11px] font-bold text-slate-300">
+            <div class="p-2.5 rounded-xl bg-slate-900/75 border border-sky-500/35 space-y-2">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-extrabold text-sky-300">Bảng Trắng Học Sinh (Zoom / Meet)</span>
+                    <span id="audienceLiveBadge" class="hidden px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-extrabold">ĐANG CHIẾU</span>
+                </div>
+                <p class="text-[10px] font-medium text-slate-400 leading-relaxed">
+                    Máy bạn vẫn hiện đầy đủ Hub công cụ. Khi Share vào Zoom / Google Meet chỉ chọn cửa sổ này — học sinh chỉ thấy mỗi trang trắng & nét bút.
+                </p>
+                <button onclick="toggleAudienceProjectorWindow()" id="openAudienceWinBtn" class="w-full h-8 rounded-lg bg-sky-600 hover:bg-sky-500 text-xs font-bold text-white transition">
+                    Mở cửa sổ Bảng Trắng Sạch
+                </button>
+                <button onclick="toggleAudienceFollowZoom()" id="audienceFollowZoomBtn" class="chip-btn w-full justify-between px-2.5 text-[11px]">
+                    <span>Góc nhìn bảng trắng</span>
+                    <span id="audienceFollowZoomLbl" class="text-sky-400 font-extrabold">Theo màn hình mình</span>
+                </button>
+            </div>
+
+            <div class="p-2.5 rounded-xl bg-slate-900/75 border border-rose-500/35 space-y-2">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-extrabold text-rose-300">Quay Video Bảng Trắng (Recording)</span>
+                    <span id="cleanRecTimerBadge" class="hidden px-1.5 py-0.5 rounded bg-rose-500/25 text-rose-300 text-[10px] font-extrabold">00:00</span>
+                </div>
+                <p class="text-[10px] font-medium text-slate-400 leading-relaxed">
+                    Giống chế độ Recording trên iPad Goodnotes: Bạn cứ bấm Hub thoải mái, video xuất ra chỉ ghi lại trang giấy trắng & nét giảng.
+                </p>
+                <button onclick="toggleRecordMicOption()" id="cleanRecordMicBtn" class="chip-btn w-full justify-between px-2.5 text-[11px]">
+                    <span>Thu âm giọng giảng (Micro)</span>
+                    <span id="cleanRecordMicBadge" class="text-slate-400 font-extrabold">TẮT</span>
+                </button>
+                <button onclick="toggleCleanBoardRecording()" id="cleanRecordActionBtn" class="w-full h-8 rounded-lg bg-rose-600 hover:bg-rose-500 text-xs font-bold text-white transition">
+                    ⏺ Bắt đầu quay bảng sạch
+                </button>
+            </div>
+
+            <div class="p-2.5 rounded-xl bg-slate-900/75 border border-emerald-500/35 space-y-2">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-extrabold text-emerald-300">🎬 Demo Tự Động & Quay TikTok</span>
+                    <span id="promoDemoStatusBadge" class="hidden px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-extrabold">ĐANG CHẠY</span>
+                </div>
+                <p class="text-[10px] font-medium text-slate-400 leading-relaxed">
+                    Tự tạo trang nháp và trình diễn trực tiếp các tính năng đỉnh (Mạch C, Benzen, Chair Flip +Ax/Eq, Cơ chế, Theme) để xem hoặc xuất video.
+                </p>
+                <div class="grid grid-cols-2 gap-1.5">
+                    <button onclick="startPromoShowcaseDemo(false)" id="promoDemoRunBtn" class="h-8 rounded-lg bg-emerald-600/80 hover:bg-emerald-500 text-[11px] font-bold text-white transition">▶ Chạy Demo</button>
+                    <button onclick="startPromoShowcaseDemo(true)" id="promoDemoRecBtn" class="h-8 rounded-lg bg-amber-600/90 hover:bg-amber-500 text-[11px] font-bold text-white transition">⏺ Demo & Xuất Video</button>
+                </div>
+            </div>
+
+            <div class="sep-line"></div>
+            <button onclick="closeAllPopovers(); togglePresentationMode();" id="singleScreenPresBtn" class="chip-btn w-full justify-between px-2.5 text-[11px]">
+                <span>Ẩn Hub ngay trên màn hình này (F9)</span>
+                <span class="text-sky-400 font-extrabold">Toàn màn hình</span>
+            </button>
+        </div>
+    </div>
+
+    <div id="substituentModal" onclick="event.stopPropagation()" class="hidden gn-popover-card" style="width:min(460px, 94vw);">
+        <div class="mb-2.5 p-2 rounded-xl bg-slate-900/75 border border-slate-700/70">
+            <div class="flex items-center justify-between gap-2 mb-1.5">
+                <span id="quickGroupEditTitle" class="text-[10.5px] font-extrabold text-sky-300">Chỉnh 6 ô trên thanh nhanh (Chạm ô để chọn • 🔒 để khóa)</span>
+            </div>
+            <div id="quickGroupSlotsStrip" class="grid grid-cols-6 gap-1.5"></div>
+        </div>
+        <div class="flex items-center gap-2 mb-2">
+            <input id="subSearchInput" type="text" placeholder="Tìm hoặc nhập nhóm thế mới (VD: OSiMe3, BPin...)" oninput="renderSubstituentCatalog()" onkeydown="handleCustomSubstituentKey(event)" class="flex-1 h-8 px-3 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-sky-400" />
+            <button onclick="addCustomSubstituentFromInput()" class="h-8 px-3 rounded-lg bg-sky-600 hover:bg-sky-500 text-xs font-bold text-white shrink-0">+ Thêm</button>
+        </div>
+        <div class="flex items-center justify-between gap-1.5 mb-2.5 flex-wrap">
+            <div class="flex items-center gap-1">
+                <button id="subTabAll" onclick="setSubModalFilter('all')" class="sub-tool-pill active">Tất cả</button>
+                <button id="subTabFav" onclick="setSubModalFilter('fav')" class="sub-tool-pill">★ Yêu thích</button>
+            </div>
+            <div class="flex items-center gap-1">
+                <button id="subResetToCBtn" onclick="selectResetToCarbonTool()" class="sub-tool-pill warn" title="Click lên nhóm thế trên phân tử để gỡ về lại C">↺ Gỡ nhóm (Về C)</button>
+                <button id="subManageBtn" onclick="toggleSubManageMode()" class="sub-tool-pill" title="Bật chế độ gắn sao ★ hoặc xóa nhóm thế">⚙ Quản lý (★ / ✕)</button>
+            </div>
+        </div>
+        <div id="subFavSection" class="mb-2.5">
+            <div class="text-[10px] font-extrabold tracking-wide text-amber-300 mb-1">★ NHÓM THẾ FAVOURITE</div>
+            <div id="subFavGrid" class="grid-5"></div>
+        </div>
+        <div id="substituentGrid" class="grid-5" style="max-height:240px;overflow-y:auto;"></div>
+        <div id="subManageFooter" class="hidden mt-2 pt-2 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+            <span>Nhấn ★ để ghim yêu thích, nhấn ✕ để xóa</span>
+            <button onclick="resetDefaultSubstituents()" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-sky-300 font-bold">Khôi phục mặc định</button>
+        </div>
+    </div>
+
+    <!-- KHÔNG GIAN BÀN VẼ CHÍNH & SPLIT-VIEW -->
+    <div id="workspaceContainer">
+        <main id="deskViewport">
+            <canvas id="chemCanvas"></canvas>
+            <div id="paperLabLayer" class="paper-lab-layer"></div>
+
+            <div id="quickSubFloatingDock" onclick="event.stopPropagation()" onpointerdown="event.stopPropagation()" class="hidden quick-sub-dock">
+                <button id="qsdCollapseBtn" onclick="toggleQuickSubDockCollapsed()" class="qsd-ctrl-btn" title="Thu gọn / Mở rộng thanh vẽ Hóa nhanh">🧪</button>
+                <div id="qsdBodyWrap" class="qsd-body">
+                    <button id="qsdModeBtn" onclick="toggleQuickSubDockMode()" class="qsd-mode-btn" title="Đổi chế độ: 📌 Chấm gắn lên đỉnh bất kỳ (hoặc kéo chọn góc) ↔ ⚡ Gắn thẳng vào đỉnh C vừa vẽ">📌 Chấm gắn</button>
+                    <div class="qsd-sep"></div>
+                    <div id="qsdChipsRow" class="qsd-chips-row no-scrollbar"></div>
+                    <div class="qsd-sep"></div>
+                    <div class="qsd-turbo-group">
+                        <button onclick="handleQuickDockRingShortcut('benzene')" id="qsdRingBenzeneBtn" class="qsd-turbo-btn" title="Gắn nhanh Vòng Benzen (ở chế độ ⚡ nối ngay vào đỉnh C vừa vẽ)">⬡</button>
+                        <button onclick="handleQuickDockRingShortcut('cyclohexane')" id="qsdRingC6Btn" class="qsd-turbo-btn" title="Gắn nhanh Vòng Xiclohexan C6">⬡6</button>
+                        <button onclick="handleQuickDockArrowShortcut()" id="qsdArrowBtn" class="qsd-turbo-btn" title="Kẻ nhanh Mũi tên Phản ứng (→)">→</button>
+                        <button onclick="handleQuickDockPenShortcut()" id="qsdPenBackBtn" class="qsd-turbo-btn is-pen-back" title="Quay về Bút máy Notewise ngay">✒️</button>
+                    </div>
+                    <div class="qsd-sep"></div>
+                    <button onclick="openSubstituentCatalogFromDock(event)" class="qsd-more-btn" title="Mở kho nhóm thế A–Z & Viết tay">⋯ Kho</button>
+                </div>
+            </div>
+
+            <div id="ringTransformFloatingBar" onclick="event.stopPropagation()" class="hidden floating-canvas-bar">
+                <button onclick="rotateActiveRingBy(-15)" class="fbar-btn" title="Xoay ngược 15°">↺</button>
+                <button onclick="rotateActiveRingBy(15)" class="fbar-btn" title="Xoay xuôi 15°">↻</button>
+                <button onclick="scaleActiveRingBy(0.9)" class="fbar-btn" title="Thu nhỏ">−</button>
+                <button onclick="scaleActiveRingBy(1.1)" class="fbar-btn" title="Phóng to">+</button>
+                <button onclick="flipActiveChairConformer()" id="btnChairFlip" class="fbar-btn" title="Lật cấu dạng ghế (Chair Flip)">⇄ Ghế</button>
+                <button onclick="addAxialEquatorialToActiveChair()" id="btnChairAxEq" class="fbar-btn" title="Thêm liên kết Trục (Axial) & Biên (Equatorial)">+Ax/Eq</button>
+                <button onclick="deleteActiveRing()" class="fbar-btn danger" title="Xóa vòng (Delete)">✕</button>
+                <button onclick="clearActiveRingGizmo(true)" class="fbar-btn primary" title="Xong">✓</button>
+            </div>
+
+            <div id="lassoFloatingBar" onclick="event.stopPropagation()" class="hidden floating-canvas-bar lasso-hub-bar">
+                <button id="lassoFormulaBadge" onclick="copyLassoFormulaInfo()" class="hidden"></button>
+                <button onclick="scaleLassoSelectionBy(0.9)" class="fbar-btn lasso-big-btn" title="Thu nhỏ cỡ">−</button>
+                <button onclick="scaleLassoSelectionBy(1.1)" class="fbar-btn lasso-big-btn" title="Tăng cỡ">+</button>
+                <button onclick="duplicateLassoSelection()" class="fbar-btn lasso-big-btn" title="Sao chép vùng chọn">⧉ Sao chép</button>
+                <button onclick="recolorLassoSelection()" class="fbar-btn lasso-big-btn" title="Đổi màu theo bút hiện tại">◐ Màu</button>
+                <button onclick="createBracketAroundLasso()" class="fbar-btn lasso-big-btn" title="Đóng khung ngoặc vuông">[ ] Ngoặc</button>
+            </div>
+
+            <div id="imageFloatingBar" onclick="event.stopPropagation()" class="hidden floating-canvas-bar">
+                <button onclick="triggerInsertImagePicker()" id="imgAddBtn" class="fbar-btn" title="Thêm ảnh">+🖼️</button>
+                <button onclick="scaleSelectedImageBy(0.88)" id="imgScaleDownBtn" class="fbar-btn" title="Thu nhỏ">−</button>
+                <button onclick="scaleSelectedImageBy(1.14)" id="imgScaleUpBtn" class="fbar-btn" title="Phóng to">+</button>
+                <button onclick="duplicateSelectedImage()" id="imgDupBtn" class="fbar-btn" title="Nhân bản">⧉</button>
+                <button onclick="toggleSelectedImageLock()" id="imgLockBtn" class="fbar-btn" style="width:auto;padding:0 9px;font-size:11px;gap:4px;" title="Cố định ảnh: không thể di chuyển và không bị Lasso khoanh nhầm">📌 Cố định</button>
+                <button onclick="deleteSelectedImage()" id="imgDeleteBtn" class="fbar-btn danger" title="Xóa ảnh">✕</button>
+                <button onclick="clearActiveImageSelection()" id="imgDoneBtn" class="fbar-btn primary" title="Xong">✓</button>
+            </div>
+
+            <div id="chainFloatingBar" onclick="event.stopPropagation()" onpointerdown="event.stopPropagation()" class="hidden floating-canvas-bar chain-turbo-bar">
+                <button onclick="adjustActiveMainChainCarbon(-1)" class="fbar-btn" title="Giảm 1 Carbon">−C</button>
+                <span id="chainCountBadge" class="chain-count-pill">2C</span>
+                <button onclick="adjustActiveMainChainCarbon(1)" class="fbar-btn primary" title="Nối thêm 1 Carbon">+C</button>
+                <div class="qsd-sep" style="height:18px;"></div>
+                <button onclick="toggleLastActiveChainBondOrder()" id="chainBondOrderBtn" class="fbar-btn chain-turbo-act" title="Đổi nhanh liên kết cuối: Đơn — → Đôi = → Ba ≡">=</button>
+                <button onclick="quickSproutGroupOnActiveChainTip('=O')" id="chainCarbonylBtn" class="fbar-btn chain-turbo-act is-carbonyl" title="Mọc nhanh nhánh =O (Carbonyl) ngay đầu mạch">=O</button>
+                <button onclick="quickSproutGroupOnActiveChainTip('OH')" id="chainOhBtn" class="fbar-btn chain-turbo-act" title="Mọc nhanh nhóm –OH ngay đầu mạch (bấm sau =O để tạo –COOH)">OH</button>
+                <button onclick="quickAttachRingToActiveChainTip('benzene')" id="chainBenzeneBtn" class="fbar-btn chain-turbo-act" title="Nối nhanh Vòng Benzen ngay đầu mạch">⬡</button>
+                <button onclick="handleQuickDockPenShortcut()" id="chainBackToPenBtn" class="fbar-btn chain-turbo-act is-pen" title="Quay về Bút máy Notewise ngay">✒️</button>
+                <button onclick="clearActiveCarbonChain()" class="fbar-btn" title="Đóng">✓</button>
+            </div>
+
+            <div id="pageQuickNavHud" onclick="event.stopPropagation()" class="page-quick-nav pqn-compact">
+                <button onclick="stepActivePage(-1)" class="pqn-btn" title="Trang trước">◀</button>
+                <span id="pageQuickNavLabel" class="pqn-label" onclick="openPageGridModal()" title="Xem danh sách trang">1/1</span>
+                <button onclick="stepActivePage(1)" class="pqn-btn" title="Trang sau (Tự thêm trang nếu đang ở cuối)">▶</button>
+                <button onclick="addNewPageToActiveNotebook()" class="pqn-btn pqn-add pqn-quick-plus" title="Thêm trang giấy mới">+</button>
+                <div class="pqn-sep"></div>
+                <button onclick="zoomCanvasBy(0.86)" id="pqnZoomOutBtn" class="pqn-btn" title="Thu nhỏ trang (Ctrl −)">−</button>
+                <button onclick="fitA4ToScreen('page')" id="pqnZoomBadge" class="pqn-btn" title="Nhìn trọn trang (Phím 0)">100%</button>
+                <button onclick="zoomCanvasBy(1.16)" id="pqnZoomInBtn" class="pqn-btn" title="Phóng to trang (Ctrl +)">+</button>
+                <div id="pqnExtraGroup" class="pqn-extra-group">
+                    <button onclick="toggleMouseWheelMode(event)" id="pqnWheelModeBtn" class="pqn-btn active" title="Con lăn chuột: Đang Thu/Phóng tại trỏ (Bấm để đổi sang Cuộn trang)">🔍</button>
+                    <div class="pqn-sep"></div>
+                    <button onclick="addNewPageToActiveNotebook()" class="pqn-btn pqn-add" title="Thêm trang giấy mới">+ Trang</button>
+                    <button onclick="toggleAutoAddPage()" id="pageQuickAutoBtn" class="pqn-btn active" title="Bật/Tắt tự động thêm trang khi viết hoặc cuộn xuống">∞</button>
+                </div>
+                <button onclick="togglePageHudExpanded(event)" id="pqnExpandBtn" class="pqn-btn pqn-expand-btn" title="Mở rộng / Thu gọn thanh trang">⋯</button>
+            </div>
+
+            <div id="readModeBar" onclick="event.stopPropagation()" class="hidden read-mode-bar">
+                <span class="read-mode-badge">📖 Chế độ Đọc (Đã khóa bút)</span>
+                <div class="pqn-sep"></div>
+                <button id="readLayout1Btn" onclick="setReadPageLayout(false)" class="pqn-btn">1 Trang</button>
+                <button id="readLayout2Btn" onclick="setReadPageLayout(true)" class="pqn-btn active">2 Trang/lúc</button>
+                <div class="pqn-sep"></div>
+                <button onclick="stepReadPage(-1)" class="pqn-btn" title="Trang trước">◀</button>
+                <span id="readModePageLabel" class="pqn-label">Trang 1/1</span>
+                <button onclick="stepReadPage(1)" class="pqn-btn" title="Trang sau">▶</button>
+                <div class="pqn-sep"></div>
+                <button onclick="zoomCanvasBy(0.9)" class="pqn-btn" title="Thu nhỏ">−</button>
+                <button onclick="fitA4ToScreen('page')" class="pqn-btn" title="Nhìn trọn trang">Trọn trang</button>
+                <button onclick="zoomCanvasBy(1.1)" class="pqn-btn" title="Phóng to">+</button>
+                <div class="pqn-sep"></div>
+                <button onclick="toggleReadMode(false)" class="pqn-btn read-exit-btn">✎ Về viết bài</button>
+            </div>
+
+            <button id="examDrawerHandle" onclick="toggleExamDrawer(true); event.stopPropagation();" class="exam-drawer-handle" title="Kéo ngăn Gắn Đề Bài ra">
+                <span class="exam-handle-arrow">◀</span>
+                <span class="exam-handle-text">Đề bài</span>
+            </button>
+
+            <aside id="examDrawerPanel" onclick="event.stopPropagation()" class="exam-drawer-panel hidden">
+                <div class="exam-drawer-header">
+                    <button onclick="toggleExamDrawer(false)" id="examDrawerCollapseBtn" class="exam-collapse-btn" title="Thu gọn về cạnh">▶ Thu gọn</button>
+                    <div class="font-bold text-xs truncate" style="color:var(--text-main);">Đề bài & Tài liệu</div>
+                    <div class="flex items-center gap-1">
+                        <button onclick="toggleExamLatexPanel()" id="examLatexToggleBtn" class="exam-hdr-btn" title="Nhập mã LaTeX (Hóa \ce{...} & Toán) để chèn đề bài">∑ LaTeX</button>
+                        <button onclick="triggerExamFileInput()" class="exam-hdr-btn primary" title="Gắn ảnh đề hoặc file PDF / TXT / Word">+ Ảnh / File</button>
+                        <button onclick="deleteActiveExamSheet()" class="exam-hdr-btn danger" title="Xóa mục hiện tại">🗑</button>
+                    </div>
+                </div>
+
+                <div class="exam-drawer-toolbar">
+                    <div class="flex items-center gap-1 min-w-0 flex-1">
+                        <button onclick="stepExamSheet(-1)" class="pqn-btn shrink-0" title="Tài liệu trước">◀</button>
+                        <span id="examSheetCounterLabel" class="text-[11px] font-bold px-1 shrink-0" style="color:var(--text-main);">0/0</span>
+                        <button onclick="stepExamSheet(1)" class="pqn-btn shrink-0" title="Tài liệu sau">▶</button>
+                        <select id="examSheetPickerSelect" onchange="selectExamSheet(Number(this.value))" class="exam-sheet-select" title="Chọn nhanh tờ đề / file đính kèm"></select>
+                    </div>
+                    <div class="flex items-center gap-1 shrink-0">
+                        <button id="examCropModeBtn" onclick="toggleExamDrawerCropMode()" class="exam-mode-btn active" title="Bật/Tắt chế độ Kéo cắt câu hỏi hoặc Cuộn xem 1 ngón">✂️ Kéo cắt</button>
+                        <button onclick="insertFullExamSheetToCanvas(true)" class="exam-mode-btn" title="Dán cả tờ đề / thẻ tài liệu vào trang viết">📌 Dán cả tờ</button>
+                    </div>
+                </div>
+
+                <div id="examFileMetaBar" class="exam-file-meta-bar hidden">
+                    <div class="flex items-center gap-1.5 min-w-0 flex-1">
+                        <span id="examFileTypeBadge" class="exam-file-type-badge">FILE</span>
+                        <span id="examFileNameLabel" class="text-[11px] font-bold truncate" style="color:var(--text-main);"></span>
+                        <span id="examFileSizeLabel" class="text-[10px] shrink-0" style="color:var(--text-muted);"></span>
+                    </div>
+                    <div class="flex items-center gap-1 shrink-0">
+                        <button id="examToggleFileViewBtn" onclick="toggleExamFileViewerMode()" class="exam-snip-btn hidden" title="Chuyển giữa Xem tài liệu gốc và Kéo cắt ảnh">👁 Xem file</button>
+                        <button id="examPasteTextBtn" onclick="pasteExamTextToPage()" class="exam-snip-btn hidden" title="Dán nội dung chữ từ file vào trang viết">📝 Dán chữ</button>
+                        <button onclick="downloadOrOpenActiveExamFile()" class="exam-snip-btn" title="Mở hoặc tải file gốc về máy">⬇ Mở/Tải</button>
+                    </div>
+                </div>
+
+                <div id="examCropActionRow" class="exam-crop-action-row hidden">
+                    <span class="text-[11px] font-semibold" style="color:var(--accent);">Đã chọn vùng cắt:</span>
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                        <button id="pasteCropBtn" onclick="pasteCroppedExamToPage(false)" class="exam-snip-btn">📌 Dán vào vở</button>
+                        <button id="pasteCropCollapseBtn" onclick="pasteCroppedExamToPage(true)" class="exam-snip-btn primary">📌 Dán & Thu gọn</button>
+                        <button id="pasteCropPinBtn" onclick="pasteCroppedExamToPage(true, true)" class="exam-snip-btn" title="Dán xong cố định khóa vị trí ngay">🔒 Dán & Cố định</button>
+                        <button onclick="clearExamCropSelection()" class="exam-snip-btn cancel">✕</button>
+                    </div>
+                </div>
+
+                <div id="examLatexPanel" class="exam-latex-panel hidden">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-[11px] font-extrabold" style="color:var(--accent);">∑ Nhập đề bằng mã LaTeX (Hóa \ce{} &amp; Toán)</span>
+                        <button onclick="toggleExamLatexPanel(false)" class="exam-snip-btn cancel">✕ Đóng</button>
+                    </div>
+                    <div class="flex items-center gap-1 flex-wrap">
+                        <button onclick="insertExamLatexSnippet('\\ce{', '}')" class="latex-chip-btn" title="Công thức/PT Hóa học">\ce{}</button>
+                        <button onclick="insertExamLatexSnippet('\\frac{', '}{}')" class="latex-chip-btn" title="Phân số">\frac</button>
+                        <button onclick="insertExamLatexSnippet('\\xrightarrow{', '}')" class="latex-chip-btn" title="Mũi tên phản ứng có điều kiện">→[đk]</button>
+                        <button onclick="insertExamLatexSnippet(' <=> ', '')" class="latex-chip-btn" title="Thuận nghịch">⇌</button>
+                        <button onclick="insertExamLatexSnippet('^{', '}')" class="latex-chip-btn" title="Số mũ / Điện tích">xⁿ</button>
+                        <button onclick="insertExamLatexSnippet('_{', '}')" class="latex-chip-btn" title="Chỉ số dưới">H₂</button>
+                        <button onclick="insertExamLatexSnippet('\\Delta H^{\\circ}', '')" class="latex-chip-btn" title="Biến thiên Enthalpy">ΔH°</button>
+                        <button onclick="insertExamLatexSnippet('$', '$')" class="latex-chip-btn" title="Cặp dấu $...$">$$</button>
+                    </div>
+                    <textarea id="examLatexInput" rows="4" oninput="renderExamLatexLivePreview()" placeholder="VD: Câu 1: Cho 5,6g \ce{Fe} tác dụng với dung dịch \ce{H2SO4} loãng. Tính $n_{H_2} = \frac{m}{M}$ và $\Delta H^\circ$." class="exam-latex-textarea"></textarea>
+                    <div class="text-[10px] font-bold" style="color:var(--text-muted);">Xem trước:</div>
+                    <div id="examLatexPreviewBox" class="exam-latex-preview">Nhập mã LaTeX ở trên để xem trước...</div>
+                    <div class="flex items-center gap-1.5 flex-wrap justify-end pt-0.5">
+                        <button onclick="addExamLatexAsSheet()" class="exam-snip-btn" title="Lưu thành tờ đề trong ngăn Đề bài để cắt dùng nhiều lần">📄 Lưu vào Đề</button>
+                        <button onclick="pasteExamLatexToPage(true, false)" class="exam-snip-btn primary">📌 Dán vào vở</button>
+                        <button onclick="pasteExamLatexToPage(true, true)" class="exam-snip-btn" title="Dán và khóa vị trí chống Lasso">🔒 Dán &amp; Cố định</button>
+                    </div>
+                </div>
+
+                <div id="examPreviewViewport" class="exam-preview-viewport">
+                    <div id="examEmptyState" class="exam-empty-state">
+                        <div class="text-sm font-bold mb-1" style="color:var(--text-main);">Chưa có đề bài / file nào</div>
+                        <div class="text-[11px] mb-3" style="color:var(--text-muted);">Chọn ảnh đề (JPG/PNG/HEIC), file PDF, Word (.docx), TXT hoặc kéo thả trực tiếp vào đây để xem nhiều trang và kéo cắt câu hỏi dán sang vở.</div>
+                        <button onclick="triggerExamFileInput()" class="px-3.5 py-2 rounded-xl text-xs font-extrabold bg-sky-500 text-slate-950">+ Chọn ảnh / File đề bài</button>
+                    </div>
+                    <canvas id="examPreviewCanvas" class="hidden"></canvas>
+                    <div id="examFileViewerWrap" class="exam-file-viewer-wrap hidden">
+                        <iframe id="examFileIframe" class="exam-file-iframe hidden" title="Xem tài liệu đính kèm"></iframe>
+                        <div id="examFileTextView" class="exam-file-text-view hidden"></div>
+                    </div>
+                </div>
+            </aside>
+
+            <div id="ipadAssistiveWidget" onclick="event.stopPropagation()" class="ipad-assistive-widget hidden">
+                <button id="ipadAssistiveBtn" onpointerdown="startAssistiveTouchDrag(event)" onclick="toggleAssistiveMenu(event)" class="assistive-fab-btn" title="Nút Trợ năng 1-Chạm iPad (Kéo để di chuyển)">
+                    <span class="assistive-core-dot"></span>
+                </button>
+                <div id="ipadAssistiveMenu" class="assistive-quick-menu hidden">
+                    <button onclick="undoAction(); closeAssistiveMenu();" class="ast-menu-btn">↩ Hoàn tác</button>
+                    <button onclick="redoAction(); closeAssistiveMenu();" class="ast-menu-btn">↪ Làm lại</button>
+                    <button onclick="toggleDoubleTapEraser(); closeAssistiveMenu();" class="ast-menu-btn">🧹 Bút ⇄ Tẩy</button>
+                    <button onclick="fitA4ToScreen('page'); closeAssistiveMenu();" class="ast-menu-btn">🗐 Vừa trang</button>
+                    <button onclick="addNewPageToActiveNotebook(); closeAssistiveMenu();" class="ast-menu-btn">📄 +Trang mới</button>
+                    <button onclick="toggleExamDrawer(); closeAssistiveMenu();" class="ast-menu-btn">📋 Đề bài</button>
+                    <button onclick="toggleReadMode(); closeAssistiveMenu();" class="ast-menu-btn">📖 Chế độ Đọc</button>
+                    <button onclick="openHelpHotkeysModal('touch'); closeAssistiveMenu();" class="ast-menu-btn">⚙️ Cảm ứng</button>
+                </div>
+            </div>
+
+            <div id="presentationHoverZone" onclick="event.stopPropagation()" class="pres-hover-zone">
+                <div id="presentationMiniDock" class="pres-mini-dock">
+                    <button onclick="selectPillPenMode('pan', event)" id="pres-pan" class="pres-btn" title="Bàn tay Kéo bảng (Hoặc Chuột phải / Giữ Space)">✋ Kéo</button>
+                    <button onclick="selectPillPenMode('ballpoint', event)" id="pres-ballpoint" class="pres-btn active" title="Bút viết">Bút</button>
+                    <button onclick="selectPillPenMode('highlighter', event)" id="pres-highlighter" class="pres-btn" title="Dạ quang">Dạ quang</button>
+                    <button onclick="selectPillPenMode('laser', event)" id="pres-laser" class="pres-btn" title="Laser chỉ điểm">Laser</button>
+                    <button onclick="selectPillPenMode('eraser', event)" id="pres-eraser" class="pres-btn" title="Tẩy">Tẩy</button>
+                    <button onclick="selectChemDrawTool('chem_bond')" id="pres-chem_bond" class="pres-btn" title="Mạch Carbon C–C">C–C</button>
+                    <div class="pqn-sep"></div>
+                    <button onclick="setQuickPenColor('#0f172a', this)" class="pres-dot" style="background:#0f172a" title="Đen"></button>
+                    <button onclick="setQuickPenColor('#1d4ed8', this)" class="pres-dot" style="background:#1d4ed8" title="Xanh dương"></button>
+                    <button onclick="setQuickPenColor('#e11d48', this)" class="pres-dot" style="background:#e11d48" title="Đỏ"></button>
+                    <button onclick="setQuickPenColor('#047857', this)" class="pres-dot" style="background:#047857" title="Xanh lá"></button>
+                    <button onclick="undoAction()" class="pres-btn" title="Hoàn tác">↩</button>
+                    <div class="pqn-sep"></div>
+                    <button onclick="zoomCanvasBy(0.86)" id="presZoomOutBtn" class="pres-btn" title="Thu nhỏ (Ctrl − hoặc lăn chuột)">−</button>
+                    <button onclick="fitA4ToScreen('page')" id="presZoomBadge" class="pres-btn" title="Căn vừa trang (Phím 0)">100%</button>
+                    <button onclick="zoomCanvasBy(1.16)" id="presZoomInBtn" class="pres-btn" title="Phóng to (Ctrl + hoặc lăn chuột)">+</button>
+                    <button onclick="toggleMouseWheelMode(event)" id="presWheelModeBtn" class="pres-btn active" title="Đổi con lăn chuột: Thu/Phóng ⇄ Cuộn trang">🔍</button>
+                    <div class="pqn-sep"></div>
+                    <button onclick="stepActivePage(-1)" class="pres-btn" title="Trang trước">◀</button>
+                    <span id="presPageLabel" class="pqn-label" style="color:#f8fafc;">1/1</span>
+                    <button onclick="stepActivePage(1)" class="pres-btn" title="Trang tiếp / Thêm trang">▶</button>
+                    <button onclick="addNewPageToActiveNotebook()" class="pres-btn" title="Thêm trang mới">+Trang</button>
+                    <button onclick="togglePresentationMode(false)" class="pres-btn pres-exit" title="Thoát trình chiếu (Esc)">Thoát (Esc)</button>
+                </div>
+            </div>
+        </main>
+
+        <aside id="secondarySplitPane" class="hidden">
+            <div class="h-10 bg-slate-900/95 border-b border-slate-800 px-3 flex items-center justify-between gap-2">
+                <select id="splitRightNotebookSelect" onchange="changeSplitRightNotebook(this.value)" class="bg-slate-800 text-sky-300 text-xs font-bold rounded-lg px-2.5 py-1.5 border border-sky-500/40 outline-none"></select>
+                <div class="flex items-center gap-1">
+                    <button onclick="stepSplitRightPage(-1)" class="top-icon-btn" style="width:26px;height:26px;">◀</button>
+                    <span id="splitRightPageIndicator" class="text-xs font-bold text-slate-300 px-1.5">1/1</span>
+                    <button onclick="stepSplitRightPage(1)" class="top-icon-btn" style="width:26px;height:26px;">▶</button>
+                    <button onclick="swapSplitNotebooks()" class="top-icon-btn" style="width:28px;height:26px;" title="Đổi sang bàn vẽ chính">⇄</button>
+                    <button onclick="toggleSplitViewMode(false)" class="top-icon-btn" style="width:26px;height:26px;">✕</button>
+                </div>
+            </div>
+            <div id="splitRightViewport" class="flex-1 relative overflow-hidden bg-slate-950">
+                <canvas id="splitRightCanvas" class="block w-full h-full"></canvas>
+            </div>
+        </aside>
+    </div>
+
+    <!-- MODAL QUẢN LÝ TRANG -->
+    <div id="pageGridModal" onclick="closePageGridModal()" class="hidden fixed inset-0 bg-black/75 z-[180] flex items-center justify-center p-6">
+        <div onclick="event.stopPropagation()" class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-2xl p-5">
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-sm font-bold text-sky-400">DANH SÁCH TRANG</span>
+                <div class="flex items-center gap-2">
+                    <button onclick="addNewPageToActiveNotebook(); renderPageGridModal();" class="px-3 py-1.5 rounded-lg bg-sky-600 text-xs font-bold text-white">+ Trang</button>
+                    <button onclick="closePageGridModal()" class="w-7 h-7 rounded-lg bg-slate-800 text-slate-300">✕</button>
+                </div>
+            </div>
+            <div id="pageGridContainer" class="grid grid-cols-3 sm:grid-cols-4 gap-3 max-h-[60vh] overflow-y-auto"></div>
+        </div>
+    </div>
+
+    <!-- SẢNH THƯ VIỆN CHEMNOTES* -->
+    <div id="libraryHubModal" onclick="event.stopPropagation()" class="hidden hub-overlay">
+        <aside class="hub-sidebar">
+            <div>
+                <div class="flex items-center justify-between mb-5 px-1">
+                    <div class="text-lg font-extrabold tracking-tight text-white">ChemNotes<span class="text-sky-400">*</span></div>
+                    <button onclick="closeLibraryHub()" class="top-icon-btn" title="Quay lại bàn vẽ">✕</button>
+                </div>
+                <div class="mb-4">
+                    <input id="hubSearchInput" type="text" placeholder="Tìm sổ tay..." oninput="renderLibraryHub()" class="w-full h-9 px-3 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white outline-none focus:border-sky-400" />
+                </div>
+                <div class="space-y-1 mb-6">
+                    <button onclick="setHubFilter('all')" id="hub-filter-all" class="hub-nav-item active"><span>Tất cả sổ tay</span><span id="hubCountAll" class="text-xs opacity-70">0</span></button>
+                    <button onclick="setHubFilter('starred')" id="hub-filter-starred" class="hub-nav-item"><span>Đánh dấu ★</span><span id="hubCountStarred" class="text-xs opacity-70">0</span></button>
+                </div>
+                <div class="flex items-center justify-between px-2 mb-2">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Thư mục</span>
+                    <button onclick="createNewFolderPrompt()" class="text-xs font-bold text-sky-400 hover:underline">+ Mới</button>
+                </div>
+                <div id="hubFoldersSidebarList" class="space-y-1 max-h-56 overflow-y-auto"></div>
+            </div>
+            <div class="pt-3 border-t border-slate-800 space-y-2">
+                <button onclick="closeLibraryHub(); openNameReactionsHubModal();" id="libraryNameReactionsBtn" class="w-full h-9 px-3 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700/80 text-xs font-bold text-slate-100 flex items-center justify-between gap-2 transition">
+                    <span>📚 Kho Name Reactions</span>
+                    <span class="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-extrabold">185</span>
+                </button>
+                <button onclick="closeLibraryHub(); openReagentsHubModal();" id="libraryReagentsBtn" class="w-full h-9 px-3 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700/80 text-xs font-bold text-slate-100 flex items-center justify-between gap-2 transition">
+                    <span>🧪 Sổ Tay Tác Nhân (Chu Văn Phòng)</span>
+                    <span class="px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 text-[10px] font-extrabold">331</span>
+                </button>
+                <button onclick="openVersionUpdateHub()" id="versionUpdateHubBtn" class="w-full h-9 px-3 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700/80 text-xs font-bold text-slate-100 flex items-center justify-between gap-2 transition">
+                    <span>🔄 Cập nhật &amp; Tính năng</span>
+                    <span id="versionUpdateMenuBadge" class="px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 text-[10px] font-extrabold">v15.15</span>
+                </button>
+                <button onclick="openFeedbackHubModal()" id="feedbackHubBtn" class="w-full h-9 px-3 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/35 text-xs font-bold text-sky-300 flex items-center justify-between gap-2 transition">
+                    <span>💬 Góp ý &amp; Báo lỗi</span>
+                    <span class="text-[10px] opacity-80">Beta</span>
+                </button>
+                <button onclick="openSupportCommunityModal('all')" id="hubSupportCommunityBtn" class="w-full h-9 px-3 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-400/35 text-xs font-bold text-rose-200 flex items-center justify-between gap-2 transition">
+                    <span>❤️ Ủng hộ &amp; Nhóm Zalo</span>
+                    <span class="text-[10px] opacity-80">Link &amp; QR</span>
+                </button>
+                <div class="grid grid-cols-2 gap-1.5 pt-1">
+                    <button onclick="triggerImportNotebookFile()" class="h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200">Mở file</button>
+                    <button onclick="exportActiveNotebookFile()" class="h-8 rounded-xl bg-sky-600/20 border border-sky-500/40 text-xs font-bold text-sky-300">Sao lưu</button>
+                    <button onclick="closeLibraryHub(); exportActiveNotebookPDF();" class="h-8 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-xs font-bold text-emerald-300">🖨️ Xuất PDF</button>
+                    <button onclick="closeLibraryHub(); shareCurrentPagePNG();" class="h-8 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-400/40 text-xs font-bold text-indigo-200">📤 Chia sẻ</button>
+                </div>
+            </div>
+        </aside>
+
+        <section class="hub-main">
+            <header class="hub-header">
+                <div class="flex items-center gap-2">
+                    <button id="hubBackAllBtn" onclick="setHubFilter('all')" class="hidden px-2.5 py-1 rounded-lg bg-slate-800 text-xs font-bold text-sky-400 hover:bg-slate-700">← Tất cả</button>
+                    <div id="hubBreadcrumbTitle" class="text-base font-extrabold text-white">Tất cả sổ tay</div>
+                </div>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <div class="inline-flex items-center p-0.5 rounded-xl bg-slate-900/90 border border-slate-700/80" title="Kiểu hiển thị danh sách sổ tay">
+                        <button id="hubViewGridBtn" onclick="setHubViewMode('grid')" class="h-8 px-2.5 rounded-lg text-xs font-bold inline-flex items-center gap-1 transition" title="Dạng lưới bìa lớn">
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+                            <span>Lưới</span>
+                        </button>
+                        <button id="hubViewListBtn" onclick="setHubViewMode('list')" class="h-8 px-2.5 rounded-lg text-xs font-bold inline-flex items-center gap-1 transition" title="Dạng hàng ngang nhỏ gọn">
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+                            <span>Hàng ngang</span>
+                        </button>
+                    </div>
+                    <button onclick="toggleAppThemePopover(event)" class="h-9 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200" title="Đổi tone màu ứng dụng">🎨 Tone màu</button>
+                    <button onclick="createNewFolderPrompt()" class="h-9 px-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200">+ Thư mục</button>
+                    <button onclick="createNewNotebookPrompt()" class="h-9 px-4 rounded-xl bg-sky-500 hover:bg-sky-400 text-xs font-extrabold text-slate-950">+ Sổ mới</button>
+                </div>
+            </header>
+            <div class="hub-content">
+                <div id="hubFoldersShelf" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-6"></div>
+                <div id="hubNotebooksShelf" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5"></div>
+            </div>
+        </section>
+    </div>
+
+    <!-- MODAL HƯỚNG DẪN IPAD & TÙY CHỈNH PHÍM TẮT -->
+    <div id="helpHotkeysModal" onclick="closeHelpHotkeysModal()" class="hidden fixed inset-0 bg-black/75 z-[255] flex items-center justify-center p-4">
+        <div onclick="event.stopPropagation()" class="help-modal-card w-full max-w-2xl max-h-[86vh] flex flex-col overflow-hidden">
+            <div class="flex items-center justify-between px-4 py-3 border-b border-black/15">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:var(--accent-soft);color:var(--accent);">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h8M7 16h10"/></svg>
+                    </div>
+                    <div>
+                        <div class="font-bold text-sm" style="color:var(--text-main);">Hướng dẫn iPad & Phím tắt ChemNote</div>
+                        <div class="text-[11px]" style="color:var(--text-muted);">Cử chỉ đa điểm iPadOS, Apple Pencil, Trình chiếu & Phím tắt tùy chỉnh</div>
+                    </div>
+                </div>
+                <button onclick="closeHelpHotkeysModal()" class="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold hover:opacity-80" style="background:rgba(148,163,184,0.16);color:var(--text-main);" title="Đóng (Esc)">✕</button>
+            </div>
+
+            <div class="flex items-center gap-2 px-4 py-2.5 border-b border-black/10 overflow-x-auto no-scrollbar">
+                <button id="helpTabTouchBtn" onclick="switchHelpModalTab('touch')" class="help-tab-btn">👆 Cảm ứng & Trợ năng iPad</button>
+                <button id="helpTabGuideBtn" onclick="switchHelpModalTab('guide')" class="help-tab-btn active">Cử chỉ iPad & Hướng dẫn</button>
+                <button id="helpTabHotkeysBtn" onclick="switchHelpModalTab('hotkeys')" class="help-tab-btn">Phím tắt tùy chỉnh</button>
+                <button id="helpTabCommunityBtn" onclick="switchHelpModalTab('community')" class="help-tab-btn">❤️ Ủng hộ &amp; Nhóm Zalo</button>
+                <button onclick="closeHelpHotkeysModal(); openVersionUpdateHub();" class="help-tab-btn">🆕 Cập nhật & Tính năng</button>
+            </div>
+
+            <div id="helpTouchPanel" class="hidden flex-1 overflow-y-auto p-4 space-y-3 text-xs"></div>
+            <div id="helpCommunityPanel" class="hidden flex-1 overflow-y-auto p-4 space-y-3 text-xs"></div>
+
+            <div id="helpGuidePanel" class="flex-1 overflow-y-auto p-4 space-y-3 text-xs">
+                <div class="help-guide-card">
+                    <div class="font-bold text-[13px] mb-2" style="color:var(--accent);">1. Cử chỉ đa điểm iPad & Apple Pencil</div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div class="p-2 rounded-lg bg-black/10">
+                            <div class="font-semibold" style="color:var(--text-main);">Chạm 2 ngón tay lên bảng</div>
+                            <div class="mt-0.5" style="color:var(--text-muted);">Hoàn tác thao tác vừa làm (Undo nhanh như Goodnotes/Procreate).</div>
+                        </div>
+                        <div class="p-2 rounded-lg bg-black/10">
+                            <div class="font-semibold" style="color:var(--text-main);">Chạm 3 ngón tay lên bảng</div>
+                            <div class="mt-0.5" style="color:var(--text-muted);">Làm lại thao tác vừa hoàn tác (Redo).</div>
+                        </div>
+                        <div class="p-2 rounded-lg bg-black/10">
+                            <div class="font-semibold" style="color:var(--text-main);">Chụm / Kéo 2 ngón tay</div>
+                            <div class="mt-0.5" style="color:var(--text-muted);">Phóng to, thu nhỏ (Pinch Zoom) và cuộn tự do quanh trang giấy.</div>
+                        </div>
+                        <div class="p-2 rounded-lg bg-black/10">
+                            <div class="font-semibold" style="color:var(--text-main);">Chạm 2 lần vào bảng (1 ngón/bút)</div>
+                            <div class="mt-0.5" style="color:var(--text-muted);">Bật/Tắt nhanh cục Tẩy và chuyển đổi giữa Tẩy & công cụ viết đang dùng.</div>
+                        </div>
+                        <div class="p-2 rounded-lg bg-black/10">
+                            <div class="font-semibold" style="color:var(--text-main);">Gạch zíc-zắc 5+ nhịp (Scribble-to-Erase)</div>
+                            <div class="mt-0.5" style="color:var(--text-muted);">Vẽ zíc-zắc qua lại liên tục đè lên nét mực để xóa nhanh đoạn mực đó.</div>
+                        </div>
+                        <div class="p-2 rounded-lg bg-black/10">
+                            <div class="font-semibold" style="color:var(--text-main);">Nhấn giữ lên nguyên tử</div>
+                            <div class="mt-0.5" style="color:var(--text-muted);">Hiện vòng tròn xanh để kéo di chuyển riêng nguyên tử hoặc nhóm thế.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="help-guide-card">
+                    <div class="font-bold text-[13px] mb-2" style="color:var(--accent);">2. Vẽ Hóa học & Viên thuốc nổi (Floating Pill)</div>
+                    <ul class="space-y-1.5 list-disc pl-4" style="color:var(--text-muted);">
+                        <li><strong style="color:var(--text-main);">Kéo mạch Carbon:</strong> Chọn Mạch (C), kéo tự do để nối mạch zíc-zắc đều chuẩn; dùng thanh nổi cạnh mạch để đổi độ dài C–C nhanh.</li>
+                        <li><strong style="color:var(--text-main);">Đổi nhanh nguyên tử / liên kết:</strong> Đưa con trỏ lên nguyên tử hoặc nhấn phím tắt khi dùng bàn phím rời (<kbd>C</kbd>, <kbd>N</kbd>, <kbd>O</kbd>, <kbd>S</kbd>, <kbd>1</kbd>, <kbd>2</kbd>, <kbd>3</kbd>, <kbd>W</kbd>, <kbd>D</kbd>).</li>
+                        <li><strong style="color:var(--text-main);">Viên thuốc tùy chỉnh:</strong> Kéo nút <code class="font-mono">⋮⋮</code> trên viên thuốc Goodnotes/Chem để đặt ở bất cứ góc nào thuận tay dạy hữu cơ hay vô cơ.</li>
+                        <li><strong style="color:var(--text-main);">3 vùng Tẩy to - vừa - nhỏ:</strong> Khi chọn Tẩy, 3 nút kích thước nét tự chuyển thành 3 kích cỡ vùng Tẩy (có thể kéo thanh trượt 6–72px).</li>
+                    </ul>
+                </div>
+
+                <div class="help-guide-card">
+                    <div class="font-bold text-[13px] mb-2" style="color:var(--accent);">3. Trình chiếu & Quay video Bảng sạch (Zoom / Meet / iPad)</div>
+                    <ul class="space-y-1.5 list-disc pl-4" style="color:var(--text-muted);">
+                        <li><strong style="color:var(--text-main);">Chế độ Bảng sạch tại chỗ:</strong> Ẩn toàn bộ thanh công cụ và hộp thoại, chỉ hiển thị trang giấy và nét viết.</li>
+                        <li><strong style="color:var(--text-main);">Cửa sổ Khán giả riêng:</strong> Mở một cửa sổ bảng sạch để share lên Zoom / Google Meet trong khi máy bạn vẫn giữ nguyên thanh hub điều khiển.</li>
+                        <li><strong style="color:var(--text-main);">Quay Video Bảng sạch HD:</strong> Ghi trực tiếp trang bảng trắng sạch sẽ thành file video mà không dính nút bấm hay thanh công cụ.</li>
+                    </ul>
+                </div>
+
+                <div class="help-guide-card">
+                    <div class="font-bold text-[13px] mb-2" style="color:var(--accent);">4. Thao tác Chuột PC trên Windows / Mac (Cả khi Live)</div>
+                    <ul class="space-y-1.5 list-disc pl-4" style="color:var(--text-muted);">
+                        <li><strong style="color:var(--text-main);">Phóng to / Thu nhỏ bằng con lăn chuột:</strong> Lăn trực tiếp con lăn chuột để Thu/Phóng tại vị trí con trỏ (giữ <kbd>Shift</kbd> + lăn để cuộn dọc, hoặc đổi sang Cuộn trang qua nút <code class="font-mono">🔍</code>).</li>
+                        <li><strong style="color:var(--text-main);">Di chuyển / Kéo bảng tự do:</strong> Kéo bằng <strong style="color:var(--text-main);">Chuột phải</strong>, <strong style="color:var(--text-main);">Chuột giữa</strong>, giữ phím <kbd>Space</kbd> + Kéo chuột trái, hoặc chọn nút <strong style="color:var(--text-main);">✋ Bàn tay</strong> (phím <kbd>X</kbd>).</li>
+                        <li><strong style="color:var(--text-main);">Phím tắt Zoom & Thanh Live:</strong> Nhấn <kbd>Ctrl</kbd>+<kbd>+</kbd>, <kbd>Ctrl</kbd>+<kbd>−</kbd>, <kbd>Ctrl</kbd>+<kbd>0</kbd>; khi trình chiếu toàn màn hình, rê chuột góc phải dưới để mở nhanh nút ✋ Kéo & − / 100% / +.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div id="helpHotkeysPanel" class="hidden flex-1 flex flex-col overflow-hidden p-4 gap-3 text-xs">
+                <div class="flex flex-wrap items-center gap-2">
+                    <input id="hotkeySearchInput" type="text" oninput="renderHotkeysSettingsList()" placeholder="Tìm phím tắt theo tên lệnh hoặc phím..." class="flex-1 min-w-[200px] px-3 py-2 rounded-lg text-xs outline-none border border-black/15 bg-black/10" style="color:var(--text-main);" />
+                    <button onclick="resetDefaultHotkeys()" class="px-3 py-2 rounded-lg text-xs font-semibold border border-rose-500/40 text-rose-400 hover:bg-rose-500/10">Reset mặc định</button>
+                </div>
+                <div id="hotkeyCaptureHint" class="px-3 py-2 rounded-lg text-[11px]" style="background:var(--accent-soft);color:var(--accent);">
+                    Nhấp vào nút phím bất kỳ bên dưới rồi nhấn phím mới trên bàn phím để gán lại. Nhấn <strong>Esc</strong> để hủy gán.
+                </div>
+                <div id="hotkeysSettingsList" class="flex-1 overflow-y-auto space-y-3 pr-1"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HỘP THOẠI NHẬP LIỆU TÙY CHỈNH -->
+    <div id="customDialogModal" onclick="closeCustomDialog()" class="hidden fixed inset-0 bg-black/75 z-[260] flex items-center justify-center p-4">
+        <div onclick="event.stopPropagation()" class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-sm p-5 shadow-2xl">
+            <div id="customDialogTitle" class="text-sm font-extrabold text-sky-400 mb-3">Tạo mới</div>
+            <div id="customDialogMessage" class="hidden text-xs text-slate-300 leading-relaxed mb-4"></div>
+            <input id="customDialogInput" type="text" class="w-full h-10 px-3 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white outline-none focus:border-sky-400 mb-3" onkeydown="if(event.key==='Enter') confirmCustomDialog()" />
+            <div id="customDialogColorsWrap" class="hidden mb-4">
+                <div class="flex items-center gap-2" id="customDialogColorList"></div>
+            </div>
+            <div class="flex items-center justify-end gap-2">
+                <button onclick="closeCustomDialog()" class="h-9 px-4 rounded-xl bg-slate-800 text-xs font-bold text-slate-300">Hủy</button>
+                <button id="customDialogConfirmBtn" onclick="confirmCustomDialog()" class="h-9 px-4 rounded-xl bg-sky-500 text-xs font-extrabold text-slate-950">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ô NHẬN DIỆN VIẾT TAY & KHO NHÓM THẾ TOÀN DIỆN (GÕ ĐÚP C HOẶC MÀN HÌNH TRỐNG) -->
+    <div id="atomHandwritingPopover" onclick="event.stopPropagation()" onpointerdown="event.stopPropagation()" class="hidden atom-hw-popover">
+        <div class="flex items-center justify-between gap-2 mb-1.5">
+            <div class="flex items-center gap-1.5 min-w-0">
+                <span class="text-[11px] font-extrabold text-sky-400 whitespace-nowrap">⚡ Chọn Nhanh Nhóm Thế</span>
+                <span id="atomHwTargetBadge" class="px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 text-[10px] font-bold truncate">C</span>
+            </div>
+            <div class="flex items-center gap-1">
+                <button id="atomHwPinBtn" onclick="toggleAtomHwPinned()" class="sub-tool-pill" style="height:24px;font-size:10.5px;padding:0 8px;" title="Ghim giữ mở bảng để gắn nhóm thế cho nhiều nguyên tử liên tiếp">📌 Ghim</button>
+                <button id="atomHwResetCBtn" onclick="applyRecognizedGroupToAtom('C')" class="sub-tool-pill" style="height:24px;font-size:10.5px;padding:0 8px;color:#fda4af;" title="Gỡ nhóm thế về lại nguyên tử Carbon (C)">↺ C</button>
+                <button onclick="closeAtomHandwritingBox()" class="atom-hw-mini-btn" title="Đóng">✕</button>
+            </div>
+        </div>
+        <div class="grid grid-cols-5 gap-1 mb-2" id="atomHwInstantGrid">
+            <button onclick="applyRecognizedGroupToAtom('=O')" class="chip-btn text-[12px] font-extrabold py-1.5 text-amber-300 border-amber-400/40" title="Gắn nhóm Carbonyl (=O)">=O</button>
+            <button onclick="applyRecognizedGroupToAtom('OH')" class="chip-btn text-[12px] font-extrabold py-1.5">OH</button>
+            <button onclick="applyRecognizedGroupToAtom('CH3')" class="chip-btn text-[12px] font-extrabold py-1.5">CH₃</button>
+            <button onclick="applyRecognizedGroupToAtom('COOH')" class="chip-btn text-[11.5px] font-extrabold py-1.5">COOH</button>
+            <button onclick="applyRecognizedGroupToAtom('CHO')" class="chip-btn text-[12px] font-extrabold py-1.5">CHO</button>
+            <button onclick="applyRecognizedGroupToAtom('NH2')" class="chip-btn text-[12px] font-extrabold py-1.5">NH₂</button>
+            <button onclick="applyRecognizedGroupToAtom('NO2')" class="chip-btn text-[12px] font-extrabold py-1.5">NO₂</button>
+            <button onclick="applyRecognizedGroupToAtom('Cl')" class="chip-btn text-[12px] font-extrabold py-1.5">Cl</button>
+            <button onclick="applyRecognizedGroupToAtom('Br')" class="chip-btn text-[12px] font-extrabold py-1.5">Br</button>
+            <button onclick="applyRecognizedGroupToAtom('C2H5')" class="chip-btn text-[11.5px] font-extrabold py-1.5">C₂H₅</button>
+        </div>
+        <div class="flex items-center gap-1.5 mb-1.5">
+            <input id="atomHwQuickInput" type="text" placeholder="Tìm hoặc gõ nhanh (VD: OCH3, SO3H, =O...)" oninput="onAtomHwManualInput(this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault(); confirmManualAtomHwInput();}" class="flex-1 min-w-0 h-7 px-2.5 rounded-lg bg-slate-950 border border-slate-700 text-[11px] font-bold text-white outline-none focus:border-sky-400" />
+            <button onclick="confirmManualAtomHwInput()" class="h-7 px-2.5 rounded-lg bg-sky-500/25 border border-sky-400/50 text-sky-300 text-[11px] font-bold whitespace-nowrap">Đặt</button>
+            <button onclick="saveCustomGroupFromHwInput()" class="h-7 px-2 rounded-lg bg-emerald-500/20 border border-emerald-400/45 text-emerald-300 text-[10.5px] font-bold whitespace-nowrap" title="Lưu nhóm đang gõ vào Kho Nhóm thế">+ Lưu</button>
+        </div>
+        <div class="flex items-center justify-between gap-1 pt-1 border-t border-slate-700/60">
+            <div class="flex items-center gap-1">
+                <button id="atomHwTabFavBtn" onclick="setAtomHwCatalogTab('fav')" class="sub-tool-pill" style="height:22px;font-size:10px;padding:0 8px;">★ Yêu thích</button>
+                <button id="atomHwTabAllBtn" onclick="setAtomHwCatalogTab('all')" class="sub-tool-pill active" style="height:22px;font-size:10px;padding:0 8px;">Kho A–Z</button>
+            </div>
+            <div class="flex items-center gap-1">
+                <button id="atomHwManageBtn" onclick="toggleAtomHwManageMode()" class="sub-tool-pill warn" style="height:22px;font-size:10px;padding:0 7px;" title="Hiện nút ✕ để xóa nhóm thế tự tạo">✎ Sửa</button>
+            </div>
+        </div>
+        <div class="atom-hw-catalog-grid mt-1.5" id="atomHwQuickChips"></div>
+        <details class="mt-2 pt-1.5 border-t border-slate-700/60">
+            <summary class="text-[10.5px] font-bold text-slate-400 cursor-pointer select-none flex items-center justify-between">
+                <span>✍️ Viết tay nhận diện nhóm thế</span>
+                <span class="flex items-center gap-1">
+                    <button type="button" onclick="event.preventDefault(); undoAtomHwStroke()" class="atom-hw-mini-btn" title="Xóa 1 nét vừa viết">↶</button>
+                    <button type="button" onclick="event.preventDefault(); clearAtomHwCanvas()" class="atom-hw-mini-btn" title="Viết lại">🗑</button>
+                </span>
+            </summary>
+            <div class="atom-hw-canvas-wrap mt-1.5" style="height:82px;">
+                <canvas id="atomHwCanvas"></canvas>
+                <div class="atom-hw-placeholder" id="atomHwPlaceholder">Viết nét bằng bút: OH, COOH, NH₂, Cl...</div>
+            </div>
+            <div class="flex items-center justify-between gap-1.5 mt-1.5">
+                <div class="flex items-center gap-1.5 min-w-0 flex-1 overflow-x-auto no-scrollbar" id="atomHwCandidatesRow">
+                    <span class="text-[10px] text-slate-400">Gợi ý nhận diện...</span>
+                </div>
+                <button id="atomHwApplyPrimaryBtn" onclick="confirmPrimaryAtomHw()" class="px-2.5 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-[11px] font-extrabold whitespace-nowrap shrink-0">✓ Gắn</button>
+            </div>
+        </details>
+    </div>
+
+    <!-- THẺ GIỚI THIỆU CÔNG CỤ KHI NHẤN GIỮ ICON -->
+    <div id="toolInfoTooltipCard" onclick="event.stopPropagation()" class="hidden tool-info-card">
+        <div class="flex items-start justify-between gap-2 mb-1">
+            <div class="min-w-0">
+                <div id="toolInfoName" class="text-[13px] font-extrabold text-sky-300 truncate">Công cụ</div>
+                <div id="toolInfoRole" class="text-[11px] font-semibold text-slate-200 mt-0.5"></div>
+            </div>
+            <button onclick="hideToolInfoCard()" class="w-6 h-6 rounded-md bg-slate-800/80 text-slate-400 hover:text-white text-xs font-bold shrink-0">✕</button>
+        </div>
+        <div id="toolInfoDesc" class="text-[11px] text-slate-300 leading-relaxed"></div>
+        <div id="toolInfoTip" class="mt-1.5 px-2 py-1.5 rounded-lg bg-sky-500/12 border border-sky-400/25 text-[10px] text-sky-200 leading-snug"></div>
+    </div>
+
+    <!-- THẺ THÔNG BÁO CẬP NHẬT TỰ ĐỘNG KHI MỞ APP (v15.5) -->
+    <div id="autoUpdateNotifyBanner" onclick="event.stopPropagation()" class="hidden auto-update-banner" role="dialog" aria-label="Thông báo có bản cập nhật mới">
+        <div class="flex items-start justify-between gap-2">
+            <div>
+                <div id="autoUpdateBannerTitle" class="text-[13px] font-extrabold text-emerald-300">🆕 Đã có bản mới ChemNote</div>
+                <div id="autoUpdateBannerDesc" class="text-[11px] text-slate-200 mt-0.5 leading-snug">Bản cập nhật mới đã sẵn sàng — toàn bộ vở viết trên máy được giữ nguyên 100%.</div>
+            </div>
+            <button onclick="dismissAutoUpdateBanner(true)" class="w-6 h-6 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white text-xs font-bold shrink-0" title="Để sau">✕</button>
+        </div>
+        <ul id="autoUpdateBannerList" class="auto-update-banner-list hidden"></ul>
+        <div class="flex flex-wrap items-center gap-2 mt-2.5">
+            <button id="autoUpdateBannerNowBtn" onclick="applyLatestAppUpdate()" class="flex-1 min-w-[140px] h-9 px-3.5 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-extrabold text-[12px] shadow-lg transition">⬇ Cập nhật ngay</button>
+            <button onclick="dismissAutoUpdateBanner(false); openVersionUpdateHub();" class="h-9 px-3 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-slate-100 font-bold text-[11px] transition">Chi tiết</button>
+            <button onclick="dismissAutoUpdateBanner(true)" class="h-9 px-2.5 rounded-xl bg-transparent hover:bg-white/10 text-slate-300 font-bold text-[11px] transition">Để sau</button>
+        </div>
+    </div>
+
+    <!-- HUB CẬP NHẬT PHIÊN BẢN, LỊCH SỬ & BẢNG TỔNG HỢP TÍNH NĂNG -->
+    <div id="versionUpdateHubModal" onclick="closeVersionUpdateHub()" class="hidden fixed inset-0 bg-black/75 z-[258] flex items-center justify-center p-3 sm:p-4">
+        <div onclick="event.stopPropagation()" class="help-modal-card w-full max-w-3xl max-h-[88vh] flex flex-col overflow-hidden">
+            <div class="flex items-center justify-between px-4 py-3 border-b border-black/15">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:var(--accent-soft);color:var(--accent);">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+                    </div>
+                    <div>
+                        <div class="font-extrabold text-sm" style="color:var(--text-main);">Hub Cập Nhật & Tổng Hợp Tính Năng ChemNote</div>
+                        <div id="verHubSubHeader" class="text-[11px]" style="color:var(--text-muted);">Cập nhật tức thì qua mạng mà giữ nguyên 100% vở viết trên máy</div>
+                    </div>
+                </div>
+                <button onclick="closeVersionUpdateHub()" class="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold hover:opacity-80" style="background:rgba(148,163,184,0.16);color:var(--text-main);" title="Đóng (Esc)">✕</button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-4 space-y-4 text-xs" id="verHubScrollBody">
+                <!-- 1. THẺ KIỂM TRA & CẬP NHẬT PHIÊN BẢN MỚI NHẤT -->
+                <div class="p-3.5 rounded-2xl border border-sky-500/35 bg-sky-500/10 space-y-3">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span id="verCurrentBadge" class="px-2 py-0.5 rounded-md bg-sky-500/20 border border-sky-400/40 text-sky-300 font-extrabold text-[11px]">Bản trên máy: v14.0</span>
+                                <span id="verRemoteStatusBadge" class="px-2 py-0.5 rounded-md bg-slate-800/80 border border-slate-600/50 text-slate-300 font-bold text-[11px]">Đang chờ kiểm tra máy chủ...</span>
+                            </div>
+                            <div id="verStatusDetailText" class="text-[11px]" style="color:var(--text-muted);">Bấm kiểm tra để đối chiếu với bản mới nhất đã xuất bản; dữ liệu sổ tay cá nhân được bảo toàn tuyệt đối.</div>
+                        </div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <button onclick="closeVersionUpdateHub(); openFeedbackHubModal();" class="px-3 py-2 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/45 text-sky-300 font-bold text-[11px] transition">💬 Góp ý / Báo lỗi</button>
+                            <button id="verCheckUpdateBtn" onclick="checkForAppUpdate(false)" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-100 font-bold text-[11px] transition">🔄 Kiểm tra bản mới</button>
+                            <button id="verApplyUpdateBtn" onclick="applyLatestAppUpdate()" class="hidden px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-[11px] shadow-lg transition">⬇ Cập nhật phiên bản mới nhất</button>
+                        </div>
+                    </div>
+
+                    <!-- TÓM TẮT CÁC CẬP NHẬT MỚI NHẤT -->
+                    <div class="pt-2.5 border-t border-sky-500/20">
+                        <div class="font-extrabold text-[12px] mb-1.5" style="color:var(--accent);">✨ Tóm tắt cập nhật mới nhất</div>
+                        <ul id="verLatestSummaryList" class="space-y-1 list-disc pl-4 text-[11px] leading-relaxed" style="color:var(--text-main);"></ul>
+                    </div>
+                </div>
+
+                <!-- 2. CHUYỂN NHANH GIỮA LỊCH SỬ CẬP NHẬT & BẢNG TỔNG HỢP TÍNH NĂNG -->
+                <div class="flex items-center gap-2 border-b border-black/15 pb-2">
+                    <button id="verSubTabChangelog" onclick="switchVerHubSubTab('changelog')" class="help-tab-btn active">📜 Lịch sử cập nhật</button>
+                    <button id="verSubTabFeatures" onclick="switchVerHubSubTab('features')" class="help-tab-btn">📋 Bảng tổng hợp tính năng</button>
+                </div>
+
+                <div id="verChangelogPanel" class="space-y-2.5"></div>
+
+                <div id="verFeaturesPanel" class="hidden space-y-2.5">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <input id="verFeatureSearchInput" type="text" oninput="renderFeatureSummaryTable()" placeholder="Tìm tính năng (VD: Lasso, Đề bài, Carbon, Mũi tên e, Màu...)" class="flex-1 min-w-[200px] h-8 px-3 rounded-lg text-xs outline-none border border-black/20 bg-black/15" style="color:var(--text-main);" />
+                        <span id="verFeatureCountBadge" class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-black/15" style="color:var(--accent);"></span>
+                    </div>
+                    <div class="overflow-x-auto rounded-xl border border-black/15">
+                        <table class="feature-matrix-table">
+                            <thead>
+                                <tr>
+                                    <th>Nhóm</th>
+                                    <th>Tính năng đã có</th>
+                                    <th>Cách dùng & Ghi chú nhanh</th>
+                                </tr>
+                            </thead>
+                            <tbody id="verFeatureTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HỘP GÓP Ý TÍNH NĂNG & BÁO LỖI BETA (NETLIFY FORMS) -->
+    <div id="feedbackHubModal" onclick="closeFeedbackHubModal()" class="hidden fixed inset-0 bg-black/75 z-[259] flex items-center justify-center p-3 sm:p-4">
+        <div onclick="event.stopPropagation()" class="help-modal-card w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="flex items-center justify-between px-4 py-3 border-b border-black/15">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:var(--accent-soft);color:var(--accent);">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="13" y2="13"/></svg>
+                    </div>
+                    <div>
+                        <div class="font-extrabold text-sm" style="color:var(--text-main);">Góp Ý Tính Năng & Báo Lỗi (Beta)</div>
+                        <div class="text-[11px]" style="color:var(--text-muted);">Gửi phản hồi trực tiếp — không làm mất hay tải lại trang đang viết</div>
+                    </div>
+                </div>
+                <button onclick="closeFeedbackHubModal()" class="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold hover:opacity-80" style="background:rgba(148,163,184,0.16);color:var(--text-main);" title="Đóng (Esc)">✕</button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-4 space-y-3 text-xs">
+                <form id="feedbackHubForm" name="chemnote-feedback" method="POST" data-netlify="true" netlify-honeypot="bot-field" enctype="multipart/form-data" onsubmit="submitFeedbackForm(event)" class="space-y-3">
+                    <input type="hidden" name="form-name" value="chemnote-feedback" />
+                    <input type="hidden" name="subject" value="[ChemNotes Beta] Góp ý / Báo lỗi từ người dùng" />
+                    <input type="hidden" id="fbAppVersionInput" name="appVersion" value="14.0" />
+                    <p class="hidden" aria-hidden="true">
+                        <label>Không điền trường này: <input type="text" name="bot-field" tabindex="-1" autocomplete="off" /></label>
+                    </p>
+
+                    <div>
+                        <label class="block text-[11px] font-bold mb-1.5" style="color:var(--text-main);">Loại phản hồi</label>
+                        <div class="grid grid-cols-3 gap-1.5" id="feedbackCategoryPills">
+                            <button type="button" onclick="selectFeedbackCategory('bug')" data-fb-cat="bug" class="fb-cat-pill active">🐛 Báo lỗi</button>
+                            <button type="button" onclick="selectFeedbackCategory('feature')" data-fb-cat="feature" class="fb-cat-pill">💡 Ý tưởng mới</button>
+                            <button type="button" onclick="selectFeedbackCategory('ui_touch')" data-fb-cat="ui_touch" class="fb-cat-pill">✍️ Bút / UI</button>
+                        </div>
+                        <select id="fbCategorySelect" name="category" onchange="syncFeedbackCategoryPills()" class="hidden">
+                            <option value="bug" selected>🐛 Báo lỗi (Bug)</option>
+                            <option value="feature">💡 Đề xuất tính năng mới</option>
+                            <option value="ui_touch">✍️ Góp ý Bút / Chuột / Giao diện</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="fbTitleInput" class="block text-[11px] font-bold mb-1" style="color:var(--text-main);">Tiêu đề tóm tắt <span class="text-rose-400">*</span></label>
+                        <input id="fbTitleInput" type="text" name="title" required maxlength="140" placeholder="VD: Khi dùng trên Windows chuột khó zoom... hoặc Đề xuất thêm vòng..." class="w-full h-9 px-3 rounded-xl border border-black/25 bg-black/20 text-xs outline-none focus:border-sky-400" style="color:var(--text-main);" />
+                    </div>
+
+                    <div>
+                        <label for="fbMessageTextarea" class="block text-[11px] font-bold mb-1" style="color:var(--text-main);">Mô tả chi tiết <span class="text-rose-400">*</span></label>
+                        <textarea id="fbMessageTextarea" name="message" required rows="4" maxlength="3000" placeholder="Kể rõ bạn đang thao tác gì, xảy ra trên iPad hay Windows, hoặc tính năng bạn mong muốn có thêm..." class="w-full p-3 rounded-xl border border-black/25 bg-black/20 text-xs outline-none focus:border-sky-400 resize-y leading-relaxed" style="color:var(--text-main);"></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <div>
+                            <label for="fbSenderInput" class="block text-[11px] font-bold mb-1" style="color:var(--text-main);">Tên / Liên hệ (tuỳ chọn)</label>
+                            <input id="fbSenderInput" type="text" name="senderName" maxlength="80" placeholder="VD: Thầy Minh / Email / SĐT" class="w-full h-8 px-3 rounded-lg border border-black/25 bg-black/20 text-[11px] outline-none focus:border-sky-400" style="color:var(--text-main);" />
+                        </div>
+                        <div>
+                            <label for="fbDeviceInfoInput" class="block text-[11px] font-bold mb-1" style="color:var(--text-main);">Thiết bị & Phiên bản (tự điền)</label>
+                            <input id="fbDeviceInfoInput" type="text" name="deviceInfo" readonly class="w-full h-8 px-3 rounded-lg border border-black/20 bg-black/15 text-[10.5px] opacity-85 outline-none" style="color:var(--text-muted);" />
+                        </div>
+                    </div>
+
+                    <div class="p-2.5 rounded-xl border border-black/20 bg-black/15 space-y-1.5">
+                        <div class="flex items-center justify-between gap-2 flex-wrap">
+                            <span class="text-[11px] font-bold" style="color:var(--text-main);">📷 Đính kèm ảnh chụp lỗi (tuỳ chọn, tối đa 8 MB)</span>
+                            <div class="flex items-center gap-1.5">
+                                <label for="fbScreenshotInput" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-[11px] font-bold text-slate-200 cursor-pointer">Chọn ảnh...</label>
+                                <button type="button" id="fbClearFileBtn" onclick="clearFeedbackScreenshot()" class="hidden px-2 py-1 rounded-lg bg-rose-500/20 text-rose-300 text-[10px] font-bold">✕ Bỏ ảnh</button>
+                            </div>
+                        </div>
+                        <input id="fbScreenshotInput" type="file" name="screenshot" accept="image/*" onchange="onFeedbackFileChange(this)" class="hidden" />
+                        <div id="fbFileStatusLabel" class="text-[10.5px]" style="color:var(--text-muted);">Chưa chọn ảnh minh họa nào.</div>
+                    </div>
+
+                    <div id="fbSubmitStatusBanner" class="hidden p-2.5 rounded-xl text-[11px] font-semibold"></div>
+
+                    <div class="flex items-center justify-end gap-2 pt-1">
+                        <button type="button" onclick="closeFeedbackHubModal()" class="h-9 px-4 rounded-xl bg-black/20 hover:bg-black/30 text-xs font-bold" style="color:var(--text-muted);">Đóng</button>
+                        <button id="fbSubmitBtn" type="submit" class="h-9 px-4 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 text-xs font-extrabold shadow-lg transition">📨 Gửi Góp Ý Ngay</button>
+                    </div>
+                </form>
+
+                <div id="fbRecentHistoryWrap" class="hidden pt-2 border-t border-black/15 space-y-1.5">
+                    <div class="text-[11px] font-bold" style="color:var(--accent);">📌 Góp ý bạn đã gửi gần đây (lưu trên máy này)</div>
+                    <div id="fbRecentHistoryList" class="space-y-1"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PHÒNG THÍ NGHIỆM MINI (MÔ PHỎNG CHUẨN ĐỘ, KẾT TỦA, SỦI KHÍ) -->
+    <div id="miniChemLabModal" onclick="closeMiniChemLab()" class="hidden fixed inset-0 bg-black/75 z-[257] flex items-center justify-center p-2 sm:p-4">
+        <div onclick="event.stopPropagation()" class="mini-lab-card">
+            <div class="mini-lab-header">
+                <div class="flex items-center gap-3">
+                    <div class="mini-lab-logo">⚗️</div>
+                    <div>
+                        <div class="font-extrabold text-[15px] leading-tight" style="color:var(--text-main);">Phòng Thí Nghiệm Hóa Học Ảo (THCS &amp; THPT)</div>
+                        <div class="text-[11px]" style="color:var(--text-muted);">7 chuyên đề mô phỏng: Chuẩn độ • Kết tủa • Kim loại/Khí • Rutherford α • Ngọn lửa • Tráng bạc • Điện phân</div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-1.5 flex-wrap">
+                    <button onclick="toggleMiniLabStageTheme()" id="miniLabThemeBtn" class="px-2.5 py-1.5 rounded-lg border text-[11px] font-bold hover:opacity-85" style="border-color:var(--border-chip);background:var(--bg-chip);color:var(--text-main);" title="Chuyển nền Bảng thí nghiệm giữa Giấy Trắng và Phòng Tối">🌞 Nền giấy</button>
+                    <button onclick="resetMiniLabExperiment()" class="px-2.5 py-1.5 rounded-lg border text-[11px] font-bold hover:opacity-85" style="border-color:var(--border-chip);background:var(--bg-chip);color:var(--text-main);" title="Làm lại thí nghiệm">↺ Làm lại</button>
+                    <button onclick="placeCurrentMiniLabOnWhitePaper()" class="px-2.5 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/50 text-emerald-300 text-[11.5px] font-extrabold" title="Đặt thí nghiệm này ra trực tiếp trang giấy trắng để vừa viết bài vừa tương tác">📄 Ra Giấy Trắng</button>
+                    <button onclick="pasteMiniLabSnapshotToPage()" class="mini-lab-paste-btn">📌 Dán ảnh</button>
+                    <button onclick="closeMiniChemLab()" class="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold hover:opacity-80" style="background:rgba(148,163,184,0.16);color:var(--text-main);" title="Đóng (Esc)">✕</button>
+                </div>
+            </div>
+
+            <div class="mini-lab-tabs-row no-scrollbar">
+                <button onclick="selectMiniLabExperiment('titration')" id="labTab-titration" class="mini-lab-tab-btn active">⚗️ Chuẩn độ</button>
+                <button onclick="selectMiniLabExperiment('precipitate')" id="labTab-precipitate" class="mini-lab-tab-btn">🧪 Kết tủa (8)</button>
+                <button onclick="selectMiniLabExperiment('gas')" id="labTab-gas" class="mini-lab-tab-btn">🫧 Kim loại + Acid/H₂O</button>
+                <button onclick="selectMiniLabExperiment('rutherford')" id="labTab-rutherford" class="mini-lab-tab-btn">⚛️ Hạt α (Rutherford)</button>
+                <button onclick="selectMiniLabExperiment('flame')" id="labTab-flame" class="mini-lab-tab-btn">🔥 Màu ngọn lửa</button>
+                <button onclick="selectMiniLabExperiment('silver_mirror')" id="labTab-silver_mirror" class="mini-lab-tab-btn">🪞 Tráng bạc</button>
+                <button onclick="selectMiniLabExperiment('electrolysis')" id="labTab-electrolysis" class="mini-lab-tab-btn">⚡ Điện phân</button>
+            </div>
+
+            <div class="mini-lab-body">
+                <div class="mini-lab-stage-col">
+                    <div class="mini-lab-stage-shell">
+                        <div id="miniLabTelemetryBar" class="mini-lab-telemetry"></div>
+                        <div class="mini-lab-canvas-wrap">
+                            <canvas id="miniLabStageCanvas" onclick="handleMiniLabCanvasClick(event)" class="mini-lab-stage-canvas"></canvas>
+                            <div id="miniLabStageHint" class="mini-lab-stage-hint">💡 Bấm trực tiếp vào dụng cụ hoặc từng bước bên phải để thực hành</div>
+                        </div>
+                    </div>
+                    <div id="miniLabReactionEquationBox" class="mini-lab-eq-box"></div>
+                </div>
+
+                <div class="mini-lab-ctrl-col">
+                    <div id="miniLabConfigBox" class="mini-lab-panel"></div>
+                    <div id="miniLabStepsBox" class="mini-lab-panel flex-1"></div>
+                    <div id="miniLabActionBar" class="mini-lab-action-panel"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ỦNG HỘ APP & NHÓM ZALO CỘNG ĐỒNG CHEMNOTE -->
+    <div id="supportCommunityModal" onclick="closeSupportCommunityModal()" class="hidden fixed inset-0 bg-black/80 z-[960] flex items-center justify-center p-3 sm:p-4" style="backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);">
+        <div onclick="event.stopPropagation()" class="help-modal-card w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="flex items-center justify-between px-4 py-3 border-b border-black/15">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center text-base" style="background:rgba(244,63,94,0.16);border:1px solid rgba(251,113,133,0.45);color:#fda4af;">
+                        ❤️
+                    </div>
+                    <div>
+                        <div class="font-extrabold text-sm" style="color:var(--text-main);">Ủng hộ ChemNotes &amp; Cộng đồng Zalo</div>
+                        <div class="text-[11px]" style="color:var(--text-muted);">Cảm ơn bạn đã đồng hành! Quét QR hoặc bấm link tham gia nhóm giao lưu Hóa học &amp; cập nhật bản mới</div>
+                    </div>
+                </div>
+                <button onclick="closeSupportCommunityModal()" class="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold hover:opacity-80" style="background:rgba(148,163,184,0.16);color:var(--text-main);" title="Đóng (Esc)">✕</button>
+            </div>
+            <div id="supportCommunityBody" class="flex-1 overflow-y-auto p-4 space-y-3 text-xs"></div>
+        </div>
+    </div>
+
+    <!-- MODAL BẢNG TUẦN HOÀN HÓA HỌC (118 NGUYÊN TỐ) & MÁY TÍNH PHÂN TỬ KHỐI M -->
+    <div id="periodicHubModal" onclick="closePeriodicHubModal()" class="hidden fixed inset-0 bg-black/80 z-[262] flex items-center justify-center p-2 sm:p-4">
+        <div onclick="event.stopPropagation()" class="help-modal-card w-full max-w-5xl max-h-[92vh] flex flex-col overflow-hidden">
+            <div class="flex items-center justify-between px-4 py-3 border-b border-black/15">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center text-base" style="background:var(--accent-soft);color:var(--accent);">⚛</div>
+                    <div>
+                        <div class="font-extrabold text-sm" style="color:var(--text-main);">Bảng Tuần Hoàn Hóa Học &amp; Máy Tính Phân Tử Khối (M)</div>
+                        <div class="text-[11px]" style="color:var(--text-muted);">118 nguyên tố chuẩn IUPAC · Nguyên tử khối phổ thông · Tính nhanh M(CH3COOH, CuSO4.5H2O, Fe2(SO4)3...)</div>
+                    </div>
+                </div>
+                <button onclick="closePeriodicHubModal()" class="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold hover:opacity-80" style="background:rgba(148,163,184,0.16);color:var(--text-main);" title="Đóng (Esc)">✕</button>
+            </div>
+            <div id="periodicHubBody" class="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 text-xs"></div>
+        </div>
+    </div>
+
+    <!-- MODAL KHO 185 NAME REACTIONS & 331 TÁC NHÂN HỮU CƠ CVP -->
+    <div id="nameReactionsHubModal" onclick="if (event.target === this) closeNameReactionsHubModal();" class="hidden nr-modal-backdrop fixed inset-0 bg-black/80 z-[263] flex items-center justify-center p-2 sm:p-4">
+        <div onclick="event.stopPropagation()" class="help-modal-card nr-modal-card w-full max-w-6xl">
+            <div class="flex items-center justify-between gap-2 px-3 sm:px-4 py-2.5 border-b border-black/15 flex-wrap">
+                <div class="flex items-center gap-2.5 min-w-0">
+                    <div id="nrHubIcon" class="w-9 h-9 rounded-xl flex items-center justify-center text-base shrink-0" style="background:var(--accent-soft);color:var(--accent);">📚</div>
+                    <div class="min-w-0">
+                        <div id="nrHubTitle" class="font-extrabold text-sm truncate" style="color:var(--text-main);">Kho Name Reactions Hữu Cơ (185 Phản Ứng)</div>
+                        <div id="nrHubSubtitle" class="text-[11px] truncate" style="color:var(--text-muted);">Jie Jack Li (6th Ed. VN) · Kéo Sơ đồ / Cơ chế trực tiếp ra trang giấy A4</div>
+                    </div>
+                </div>
+                <div class="nr-tab-switcher">
+                    <button type="button" id="nrTabReactionsBtn" onclick="setReferenceHubTab('reactions')" class="nr-tab-btn active">📚 Name Reactions (185)</button>
+                    <button type="button" id="nrTabReagentsBtn" onclick="setReferenceHubTab('reagents')" class="nr-tab-btn">🧪 Tác Nhân · Chu Văn Phòng (331)</button>
+                </div>
+                <div class="flex items-center gap-2 flex-1 sm:flex-initial sm:min-w-[300px] justify-end">
+                    <input id="nrSearchInput" type="search" oninput="setReferenceHubQuery(this.value)" placeholder="Tìm: aldol, Pd, mCPBA, chuyển vị..." class="flex-1 sm:w-56 h-8 px-3 rounded-lg border text-xs outline-none" style="background:var(--bg-chip);border-color:var(--border-chip);color:var(--text-main);" />
+                    <span id="nrCountBadge" class="px-2 py-1 rounded-md text-[10.5px] font-extrabold shrink-0 bg-sky-500/20 text-sky-300">185/185</span>
+                    <button type="button" id="nrDockBtn" onclick="toggleReferenceHubDock()" class="nr-dock-btn" title="Thu gọn sang cạnh trái để vừa xem giấy vừa kéo thả">◧ Cạnh trái</button>
+                    <button onclick="closeNameReactionsHubModal()" class="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold hover:opacity-80 shrink-0" style="background:rgba(148,163,184,0.16);color:var(--text-main);" title="Đóng (Esc)">✕</button>
+                </div>
+            </div>
+            <div id="nrCategoryBar" class="nr-cat-bar"></div>
+            <div class="nr-hub-layout">
+                <div id="nrListPane" class="nr-list-pane"></div>
+                <div id="nrDetailPane" class="nr-detail-pane"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KHUNG IN / XUẤT PDF ĐA TRANG (ẨN KHI XEM, HIỆN KHI PRINT PDF) -->
+    <div id="printPdfSheetContainer" class="hidden"></div>
+
+    <!-- NẠP 4 MODULE JAVASCRIPT THEO THỨ TỰ -->
+    <script src="state-catalog.js?v=14"></script>
+    <script src="ui-hub.js?v=14"></script>
+    <script src="renderer.js?v=14"></script>
+    <script src="chem-engine.js?v=14"></script>
+    <script>
+        if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.protocol === 'http:')) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js?v=14').catch(() => {});
+            });
+        }
+    </script>
+</body>
+</html>

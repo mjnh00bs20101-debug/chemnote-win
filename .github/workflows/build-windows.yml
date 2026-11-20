@@ -1,0 +1,38 @@
+name: Build Windows EXE (ChemNote)
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'Chemnote_Windows_Electron/**'
+      - '.github/workflows/build-windows.yml'
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: Chemnote_Windows_Electron
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Electron dependencies
+        run: npm install
+
+      - name: Build Windows Installer & Portable EXE
+        run: npm run dist:win
+
+      - name: Upload Windows EXE Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ChemNote-Windows-x64
+          path: |
+            Chemnote_Windows_Electron/dist/*.exe
+          if-no-files-found: error
