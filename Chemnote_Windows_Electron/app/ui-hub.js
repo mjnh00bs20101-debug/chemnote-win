@@ -10440,6 +10440,18 @@ function closeSupportCommunityModal() {
     document.getElementById('supportCommunityModal')?.classList.add('hidden');
 }
 
+function openWindowsDownloadModal() {
+    closeAllPopovers();
+    document.getElementById('windowsDownloadModal')?.classList.remove('hidden');
+}
+
+function closeWindowsDownloadModal() {
+    document.getElementById('windowsDownloadModal')?.classList.add('hidden');
+}
+
+window.openWindowsDownloadModal = openWindowsDownloadModal;
+window.closeWindowsDownloadModal = closeWindowsDownloadModal;
+
 // ============================================================================
 // SECTION 10: BẢNG TUẦN HOÀN 118 NGUYÊN TỐ & MÁY TÍNH PHÂN TỬ KHỐI (M)
 // ============================================================================
