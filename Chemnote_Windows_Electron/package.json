@@ -12,6 +12,9 @@
     "dist:win:nsis": "electron-builder --win nsis --x64",
     "dist:win:portable": "electron-builder --win portable --x64"
   },
+  "dependencies": {
+    "electron-updater": "^6.3.9"
+  },
   "devDependencies": {
     "electron": "^33.2.1",
     "electron-builder": "^25.1.8"
@@ -20,6 +23,13 @@
     "appId": "vn.chemnote.desktop",
     "productName": "ChemNote",
     "asar": true,
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "mjnh00bs20101-debug",
+        "repo": "chemnote-win"
+      }
+    ],
     "directories": {
       "output": "dist",
       "buildResources": "build"
@@ -31,6 +41,7 @@
       "build/**/*"
     ],
     "win": {
+      "verifyUpdateCodeSignature": false,
       "target": [
         {
           "target": "nsis",

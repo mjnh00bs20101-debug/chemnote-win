@@ -6332,7 +6332,110 @@ function renderFeatureSummaryTable() {
     `).join('');
 }
 
+// ===== TỰ CẬP NHẬT BẢN WINDOWS (ELECTRON + GITHUB RELEASES) =====
+let desktopUpdateState = null;
+let desktopUpdateListenerBound = false;
+
+function isDesktopAutoUpdateAvailable() {
+    return typeof window !== 'undefined'
+        && window.chemnoteDesktop
+        && window.chemnoteDesktop.isElectron
+        && typeof window.chemnoteDesktop.checkForUpdates === 'function';
+}
+
+function renderDesktopUpdateState(st, silent) {
+    desktopUpdateState = st || desktopUpdateState;
+    const s = desktopUpdateState || {};
+    const remBadge = document.getElementById('verRemoteStatusBadge');
+    const detailEl = document.getElementById('verStatusDetailText');
+    const applyBtn = document.getElementById('verApplyUpdateBtn');
+    const btn = document.getElementById('verCheckUpdateBtn');
+    const dotEl = document.getElementById('versionUpdateDot');
+    const newVer = s.version || '';
+
+    if (btn) {
+        const busy = s.status === 'checking' || s.status === 'downloading' || s.status === 'available';
+        btn.disabled = busy;
+        btn.textContent = busy ? '⏳ Đang xử lý...' : '🔄 Kiểm tra bản mới';
+    }
+    if (dotEl) dotEl.classList.toggle('hidden', s.status !== 'downloaded');
+
+    let badgeTxt = '';
+    let detailTxt = '';
+    if (s.status === 'checking') {
+        badgeTxt = '⏳ Đang kiểm tra...';
+        detailTxt = 'Đang kiểm tra bản mới trên máy chủ GitHub...';
+    } else if (s.status === 'available' || s.status === 'downloading') {
+        badgeTxt = '⬇ Đang tải v' + newVer + ' (' + Number(s.percent || 0) + '%)';
+        detailTxt = 'Đang tự động tải bản mới v' + newVer + ' ngầm. Bạn cứ tiếp tục ghi chú bình thường.';
+    } else if (s.status === 'downloaded') {
+        badgeTxt = '🆕 Sẵn sàng cài v' + newVer;
+        detailTxt = 'Đã tải xong bản v' + newVer + '. Bấm "Cài đặt & Khởi động lại" để cập nhật ngay (toàn bộ ghi chú được giữ nguyên), hoặc để app tự cài khi bạn tắt app.';
+    } else if (s.status === 'not-available') {
+        badgeTxt = '✓ Đã là mới nhất (v' + (s.currentVersion || '') + ')';
+        detailTxt = 'Bạn đang dùng bản ChemNote Windows mới nhất.';
+    } else if (s.status === 'error') {
+        badgeTxt = 'Chưa kiểm tra được';
+        detailTxt = 'Không kết nối được máy chủ cập nhật (đang offline?). App vẫn dùng bình thường; khi có mạng, bấm Kiểm tra lại.';
+    }
+    if (remBadge && badgeTxt) remBadge.textContent = badgeTxt;
+    if (detailEl && detailTxt) detailEl.textContent = detailTxt;
+
+    if (applyBtn) {
+        if (s.status === 'downloaded') {
+            applyBtn.classList.remove('hidden');
+            applyBtn.disabled = false;
+            applyBtn.textContent = '⬇ Cài đặt v' + newVer + ' & Khởi động lại';
+            applyBtn.className = 'px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-[11px] shadow-lg transition';
+        } else {
+            applyBtn.classList.add('hidden');
+        }
+    }
+
+    if (s.status === 'downloaded') {
+        const hubOpen = !document.getElementById('versionUpdateHubModal')?.classList.contains('hidden');
+        if (!hubOpen && typeof showAutoUpdateBanner === 'function') {
+            showAutoUpdateBanner({
+                version: newVer,
+                versionCode: 999999,
+                title: 'ChemNote v' + newVer + ' đã tải xong',
+                highlights: ['Bấm Cập nhật ngay để cài bản mới và khởi động lại app (ghi chú được giữ nguyên).']
+            });
+        }
+        if (!silent && typeof showGestureToast === 'function') {
+            showGestureToast('🆕 Bản v' + newVer + ' đã tải xong — bấm Cập nhật để cài!');
+        }
+    } else if (!silent && s.status === 'not-available' && typeof showGestureToast === 'function') {
+        showGestureToast('✓ Bạn đang dùng bản mới nhất (v' + (s.currentVersion || '') + ')');
+    }
+}
+
+function bindDesktopUpdateListener() {
+    if (desktopUpdateListenerBound || !isDesktopAutoUpdateAvailable()) return;
+    desktopUpdateListenerBound = true;
+    if (typeof window.chemnoteDesktop.onUpdateStatus === 'function') {
+        window.chemnoteDesktop.onUpdateStatus(st => renderDesktopUpdateState(st, true));
+    }
+    if (typeof window.chemnoteDesktop.getUpdateState === 'function') {
+        window.chemnoteDesktop.getUpdateState().then(st => renderDesktopUpdateState(st, true)).catch(() => {});
+    }
+}
+
+if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+    window.addEventListener('load', () => { try { bindDesktopUpdateListener(); } catch (_) {} });
+}
+
 async function checkForAppUpdate(silent = false) {
+    if (isDesktopAutoUpdateAvailable()) {
+        bindDesktopUpdateListener();
+        try {
+            const st = await window.chemnoteDesktop.checkForUpdates();
+            renderDesktopUpdateState(st, silent);
+        } catch (_) {
+            renderDesktopUpdateState({ status: 'error' }, silent);
+        }
+        return;
+    }
     const remBadge = document.getElementById('verRemoteStatusBadge');
     const detailEl = document.getElementById('verStatusDetailText');
     const btn = document.getElementById('verCheckUpdateBtn');
@@ -6392,6 +6495,15 @@ async function checkForAppUpdate(silent = false) {
 }
 
 async function applyLatestAppUpdate() {
+    if (isDesktopAutoUpdateAvailable()) {
+        if (typeof persistLibrary === 'function') persistLibrary(true);
+        if (desktopUpdateState && desktopUpdateState.status === 'downloaded' && typeof window.chemnoteDesktop.installUpdateNow === 'function') {
+            await window.chemnoteDesktop.installUpdateNow();
+        } else {
+            await checkForAppUpdate(false);
+        }
+        return;
+    }
     const btn = document.getElementById('verApplyUpdateBtn');
     const bannerBtn = document.getElementById('autoUpdateBannerNowBtn');
     if (btn) {
