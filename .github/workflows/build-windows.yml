@@ -38,6 +38,8 @@ jobs:
 
       - name: Build Windows Installer & Portable EXE
         run: npm run dist:win
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Windows EXE Artifacts
         uses: actions/upload-artifact@v4
