@@ -1,11 +1,11 @@
 {
-  "version": "15.15.1",
-  "versionCode": 36,
+  "version": "15.15.2",
+  "versionCode": 37,
   "releasedAt": "2026-11-21",
-  "title": "v15.15.1 — Hub PC Studio Gộp 1 Thanh, Nét Vẽ Sắc Góc Không Hở Đuôi, Bút Bi Đều Nét & Khóa Viền Viên Thuốc",
+  "title": "v15.15.2 — Bút Máy Thanh–Đậm Chữ Đẹp (Kèm Thanh Chỉnh), Bỏ Tụt Đuôi Nét, Chèn Bảng Tóm Tắt & Gợi Ý iPad",
   "highlights": [
-    "Hub PC Studio riêng cho bản Windows (.exe): bỏ viên thuốc nổi, gộp toàn bộ công cụ vẽ + ChemDraw + 3 nút tra cứu nhanh (185 Phản ứng, 331 Tác nhân, BTH) gọn rộng trên 1 thanh",
-    "Sửa triệt để lỗi nét vẽ bị bo cong mất góc nhọn và tụt nét đuôi gây hở hình; chỉnh Bút bi đều nét 100% (chỉ Bút máy có thanh – đậm)",
-    "Tăng độ trễ chuyển nét tay sang Mạch C (mặc định 850 ms, tắt đổi tức thì khi nhấc bút) và khóa cứng viền di chuyển 4 cạnh cho viên thuốc"
+    "Nâng cấp Bút máy chuẩn chữ viết tay thanh – đậm (nét kéo xuống đậm đầy mực, nét đưa lên thanh mảnh, đuôi nét tròn đều không bị bóp nhọn) kèm thanh trượt chỉnh Độ tương phản Thanh – Đậm",
+    "Thêm công cụ Chèn nhanh Bảng Tóm Tắt (2–4 cột, 2–5 hàng, 4 màu tiêu đề) trực tiếp lên giấy A4, tự do kéo giãn và viết vào ô",
+    "Thêm gợi ý thông minh 1 chạm cho iPad đời cũ / bút cảm ứng ngoài (tự ẩn hoàn toàn trên iPad Apple Pencil và PC)"
   ]
 }

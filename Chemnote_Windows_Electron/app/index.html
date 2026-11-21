@@ -42,6 +42,7 @@
 
         <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar min-w-0">
             <div id="pcTopQuickRefBar" class="pc-top-quick-ref-bar hidden">
+                <button onclick="openInsertTableModal()" class="pc-top-ref-btn" title="Chèn nhanh Bảng tóm tắt 2–4 cột lên giấy A4">📊 Chèn Bảng</button>
                 <button onclick="openNameReactionsHubModal()" class="pc-top-ref-btn" title="Mở nhanh Kho 185 Name Reactions">📚 185 Phản ứng</button>
                 <button onclick="openReagentsHubModal()" class="pc-top-ref-btn" title="Mở nhanh Sổ Tay 331 Tác Nhân (Chu Văn Phòng)">🧪 331 Tác nhân</button>
                 <button onclick="openPeriodicHubModal()" class="pc-top-ref-btn" title="Mở nhanh Bảng Tuần Hoàn & Tính Phân tử khối M">⚛ BTH</button>
@@ -197,6 +198,10 @@
                 <button onclick="closeAllPopovers(); toggleReadMode();" id="readModeBtn" class="settings-menu-row justify-center px-1.5" title="Chế độ Đọc (Phím M)">📖 Đọc</button>
                 <button onclick="closeAllPopovers(); toggleAppFullscreen();" id="fullscreenToggleBtn" class="settings-menu-row justify-center px-1.5" title="Toàn màn hình">⛶ Toàn màn</button>
             </div>
+            <button onclick="closeAllPopovers(); openInsertTableModal();" id="settingsInsertTableBtn" class="settings-menu-row">
+                <span>📊 Chèn Bảng Tóm Tắt</span>
+                <span class="settings-row-sub">2–4 Cột</span>
+            </button>
             <button onclick="openLabFromSettings(event)" id="menuLabBtn" class="settings-menu-row">
                 <span>🧪 Thí nghiệm ảo &amp; Dụng cụ</span>
                 <span class="settings-row-sub">7 Mô phỏng</span>
@@ -442,11 +447,20 @@
     <div id="penSettingsPopover" onclick="event.stopPropagation()" class="hidden gn-popover-card" style="width:276px;">
         <div id="penSettingsSection">
             <div id="penStyleGrid" class="grid-4 mb-2"></div>
-            <div id="fountainNibAngleRow" class="hidden mb-2 p-1.5 rounded-lg bg-slate-900/65 border border-slate-700/70">
-                <div class="text-[10px] font-bold text-sky-300 mb-1">Kiểu ngòi Bút máy Notewise (Thanh – Đậm)</div>
-                <div class="grid grid-cols-2 gap-1">
-                    <button onclick="setFountainNibAngle(90)" id="nibAngle90Btn" class="chip-btn text-[10.5px]">Notewise Chuẩn</button>
-                    <button onclick="setFountainNibAngle(35)" id="nibAngle35Btn" class="chip-btn text-[10.5px]">35° Nghiêng cổ điển</button>
+            <div id="fountainNibAngleRow" class="hidden mb-2 p-1.5 rounded-lg bg-slate-900/65 border border-slate-700/70 space-y-2">
+                <div>
+                    <div class="text-[10px] font-bold text-sky-300 mb-1">Kiểu ngòi Bút máy (Thanh – Đậm)</div>
+                    <div class="grid grid-cols-2 gap-1">
+                        <button onclick="setFountainNibAngle(90)" id="nibAngle90Btn" class="chip-btn text-[10.5px]">Chuẩn chữ đẹp</button>
+                        <button onclick="setFountainNibAngle(35)" id="nibAngle35Btn" class="chip-btn text-[10.5px]">35° Nghiêng cổ điển</button>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between text-[10px] font-bold text-slate-300 mb-1">
+                        <span>Độ tương phản Thanh – Đậm</span>
+                        <span id="fountainContrastValLbl" class="text-sky-400">Chuẩn (100%)</span>
+                    </div>
+                    <input id="fountainContrastSlider" type="range" min="0.35" max="1.35" step="0.05" value="1.0" oninput="onFountainContrastChange(this.value)" class="gn-slider" />
                 </div>
             </div>
             <div class="sep-line"></div>
@@ -1303,10 +1317,10 @@
                             <div class="text-[11px] text-slate-300 mt-0.5">Dành cho máy tính Windows 10 &amp; 11 (64-bit). Đã tích hợp tính năng tự động cập nhật và chạy mượt mà không cần mạng.</div>
                         </div>
                         <div class="flex items-center gap-2 flex-wrap">
-                            <a href="https://github.com/mjnh00bs20101-debug/chemnote-win/releases/download/v15.15.1/ChemNote-Setup-15.15.1-win-x64.exe" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-[11px] shadow-md flex items-center gap-1 transition">
+                            <a href="https://github.com/mjnh00bs20101-debug/chemnote-win/releases/download/v15.15.2/ChemNote-Setup-15.15.2-win-x64.exe" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-[11px] shadow-md flex items-center gap-1 transition">
                                 <span>⬇ Tải Bản Setup (.exe)</span>
                             </a>
-                            <a href="https://github.com/mjnh00bs20101-debug/chemnote-win/releases/download/v15.15.1/ChemNote-Portable-15.15.1-win-x64.exe" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 font-bold text-[11px] flex items-center gap-1 transition">
+                            <a href="https://github.com/mjnh00bs20101-debug/chemnote-win/releases/download/v15.15.2/ChemNote-Portable-15.15.2-win-x64.exe" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 font-bold text-[11px] flex items-center gap-1 transition">
                                 <span>⚡ Bản Portable</span>
                             </a>
                             <a href="https://github.com/mjnh00bs20101-debug/chemnote-win/releases/latest" target="_blank" rel="noopener noreferrer" class="px-2 py-1.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/35 text-sky-300 font-bold text-[11px] transition" title="Xem trên GitHub Releases">
@@ -1485,6 +1499,66 @@
         </div>
     </div>
 
+    <!-- GỢI Ý THÔNG MINH 1 CHẠM CHO IPAD ĐỜI CŨ / BÚT NGOÀI (TỰ ẨN TRÊN IPAD APPLE PENCIL & PC) -->
+    <div id="touchDrawHintToast" onclick="event.stopPropagation()" class="hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-[950] px-3.5 py-2 rounded-2xl bg-slate-900/95 border border-sky-400/50 shadow-2xl flex items-center gap-2.5 text-xs text-slate-100 max-w-[94vw]" style="backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);">
+        <span class="leading-snug">💡 Đang ở chế độ <b>1 ngón Vuốt</b>. Nếu dùng bút ngoài/ngón tay:</span>
+        <button type="button" onclick="enableOneTouchDrawFromHint()" class="px-2.5 py-1.5 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-extrabold text-[11px] whitespace-nowrap transition">✎ Bật Vẽ 1 chạm</button>
+        <button type="button" onclick="dismissTouchDrawHint()" class="w-6 h-6 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 text-xs font-bold shrink-0" title="Đóng">✕</button>
+    </div>
+
+    <!-- MODAL CHÈN NHANH BẢNG TÓM TẮT HÓA HỌC (2-4 CỘT) -->
+    <div id="insertTableModal" onclick="closeInsertTableModal()" class="hidden fixed inset-0 bg-black/75 z-[960] flex items-center justify-center p-3 sm:p-4" style="backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);">
+        <div onclick="event.stopPropagation()" class="help-modal-card w-full max-w-md flex flex-col overflow-hidden">
+            <div class="flex items-center justify-between px-4 py-3 border-b border-black/15">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-xl flex items-center justify-center text-base" style="background:var(--accent-soft);color:var(--accent);">📊</div>
+                    <div>
+                        <div class="font-extrabold text-sm" style="color:var(--text-main);">Chèn Bảng Tóm Tắt Lên Giấy</div>
+                        <div class="text-[11px]" style="color:var(--text-muted);">Kéo giãn kích thước &amp; viết trực tiếp vào ô như vở ghi đẹp</div>
+                    </div>
+                </div>
+                <button onclick="closeInsertTableModal()" class="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold hover:opacity-80" style="background:rgba(148,163,184,0.16);color:var(--text-main);">✕</button>
+            </div>
+            <div class="p-4 space-y-3.5 text-xs">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <div class="font-bold text-[11px] mb-1.5" style="color:var(--text-muted);">Số cột</div>
+                        <div class="grid grid-cols-3 gap-1.5">
+                            <button type="button" onclick="setInsertTableOpt('cols', 2)" id="tblColBtn2" class="chip-btn text-xs">2 cột</button>
+                            <button type="button" onclick="setInsertTableOpt('cols', 3)" id="tblColBtn3" class="chip-btn text-xs active">3 cột</button>
+                            <button type="button" onclick="setInsertTableOpt('cols', 4)" id="tblColBtn4" class="chip-btn text-xs">4 cột</button>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="font-bold text-[11px] mb-1.5" style="color:var(--text-muted);">Số hàng (gồm tiêu đề)</div>
+                        <div class="grid grid-cols-4 gap-1">
+                            <button type="button" onclick="setInsertTableOpt('rows', 2)" id="tblRowBtn2" class="chip-btn text-xs">2</button>
+                            <button type="button" onclick="setInsertTableOpt('rows', 3)" id="tblRowBtn3" class="chip-btn text-xs active">3</button>
+                            <button type="button" onclick="setInsertTableOpt('rows', 4)" id="tblRowBtn4" class="chip-btn text-xs">4</button>
+                            <button type="button" onclick="setInsertTableOpt('rows', 5)" id="tblRowBtn5" class="chip-btn text-xs">5</button>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="font-bold text-[11px] mb-1.5" style="color:var(--text-muted);">Màu hàng tiêu đề</div>
+                    <div class="grid grid-cols-4 gap-1.5">
+                        <button type="button" onclick="setInsertTableOpt('theme', 'slate')" id="tblThemeBtn_slate" class="chip-btn text-[11px] active">⬜ Xám nhẹ</button>
+                        <button type="button" onclick="setInsertTableOpt('theme', 'sky')" id="tblThemeBtn_sky" class="chip-btn text-[11px]">🟦 Xanh dương</button>
+                        <button type="button" onclick="setInsertTableOpt('theme', 'emerald')" id="tblThemeBtn_emerald" class="chip-btn text-[11px]">🟩 Xanh ngọc</button>
+                        <button type="button" onclick="setInsertTableOpt('theme', 'rose')" id="tblThemeBtn_rose" class="chip-btn text-[11px]">🩷 Hồng dịu</button>
+                    </div>
+                </div>
+                <div class="rounded-xl border border-black/15 bg-white/95 p-3 flex items-center justify-center">
+                    <img id="insertTablePreviewImg" alt="Xem trước bảng" class="max-w-full max-h-36 object-contain" />
+                </div>
+                <div class="flex items-center justify-end gap-2 pt-1">
+                    <button type="button" onclick="closeInsertTableModal()" class="h-9 px-3.5 rounded-xl bg-black/20 hover:bg-black/30 text-xs font-bold" style="color:var(--text-muted);">Hủy</button>
+                    <button type="button" onclick="confirmInsertSummaryTable()" class="h-9 px-4 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 text-xs font-extrabold shadow-lg transition">✓ Chèn bảng ra giấy</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL TẢI BẢN WINDOWS DESKTOP (.EXE) -->
     <div id="windowsDownloadModal" onclick="closeWindowsDownloadModal()" class="hidden fixed inset-0 bg-black/80 z-[960] flex items-center justify-center p-3 sm:p-4" style="backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);">
         <div onclick="event.stopPropagation()" class="help-modal-card w-full max-w-xl max-h-[92vh] flex flex-col overflow-hidden">
@@ -1495,7 +1569,7 @@
                     </div>
                     <div>
                         <div class="font-extrabold text-sm" style="color:var(--text-main);">Tải ChemNote Cho Windows</div>
-                        <div class="text-[11px]" style="color:var(--text-muted);">Phiên bản v15.15.1 chính thức · Tự động cập nhật &amp; Chạy offline</div>
+                        <div class="text-[11px]" style="color:var(--text-muted);">Phiên bản v15.15.2 chính thức · Tự động cập nhật &amp; Chạy offline</div>
                     </div>
                 </div>
                 <button onclick="closeWindowsDownloadModal()" class="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold hover:opacity-80" style="background:rgba(148,163,184,0.16);color:var(--text-main);" title="Đóng (Esc)">✕</button>
@@ -1504,7 +1578,7 @@
                 <!-- THÔNG TIN PHIÊN BẢN -->
                 <div class="p-3 rounded-xl bg-sky-500/10 border border-sky-400/30 flex items-center justify-between gap-2 flex-wrap">
                     <div>
-                        <div class="font-extrabold text-[12px] text-sky-300">ChemNote Desktop v15.15.1 (Windows 64-bit)</div>
+                        <div class="font-extrabold text-[12px] text-sky-300">ChemNote Desktop v15.15.2 (Windows 64-bit)</div>
                         <div class="text-[11px] text-slate-300">Tương thích hoàn toàn Windows 10, Windows 11</div>
                     </div>
                     <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-extrabold text-[10.5px]">✓ Miễn phí 100%</span>
@@ -1523,9 +1597,9 @@
                             </div>
                             <span class="text-[10px] text-slate-400 font-bold shrink-0">~104 MB</span>
                         </div>
-                        <a href="https://github.com/mjnh00bs20101-debug/chemnote-win/releases/download/v15.15.1/ChemNote-Setup-15.15.1-win-x64.exe" target="_blank" rel="noopener noreferrer" class="w-full h-10 px-4 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-xs flex items-center justify-center gap-2 shadow-lg transition">
+                        <a href="https://github.com/mjnh00bs20101-debug/chemnote-win/releases/download/v15.15.2/ChemNote-Setup-15.15.2-win-x64.exe" target="_blank" rel="noopener noreferrer" class="w-full h-10 px-4 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-xs flex items-center justify-center gap-2 shadow-lg transition">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                            <span>Tải Ngay ChemNote-Setup-15.15.1-win-x64.exe</span>
+                            <span>Tải Ngay ChemNote-Setup-15.15.2-win-x64.exe</span>
                         </a>
                     </div>
 
@@ -1538,9 +1612,9 @@
                             </div>
                             <span class="text-[10px] text-slate-400 font-bold shrink-0">~104 MB</span>
                         </div>
-                        <a href="https://github.com/mjnh00bs20101-debug/chemnote-win/releases/download/v15.15.1/ChemNote-Portable-15.15.1-win-x64.exe" target="_blank" rel="noopener noreferrer" class="w-full h-9 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-100 font-bold text-xs flex items-center justify-center gap-2 transition">
+                        <a href="https://github.com/mjnh00bs20101-debug/chemnote-win/releases/download/v15.15.2/ChemNote-Portable-15.15.2-win-x64.exe" target="_blank" rel="noopener noreferrer" class="w-full h-9 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-100 font-bold text-xs flex items-center justify-center gap-2 transition">
                             <svg class="w-4 h-4 text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                            <span>Tải ChemNote-Portable-15.15.1-win-x64.exe</span>
+                            <span>Tải ChemNote-Portable-15.15.2-win-x64.exe</span>
                         </a>
                     </div>
                 </div>

@@ -10,10 +10,10 @@ let activePenStyle = 'fountain';
 let penSmoothing = 0.50;
 let penOpacity = 1.0;
 const APP_CURRENT_VERSION = {
-    version: '15.15.1',
-    versionCode: 36,
+    version: '15.15.2',
+    versionCode: 37,
     releasedAt: '2026-11-21',
-    title: 'v15.15.1 — Hub PC Studio, Nét Vẽ Sắc Góc, Bút Bi Đều Nét & Khóa Viền Viên Thuốc'
+    title: 'v15.15.2 — Bút Máy Thanh–Đậm Chữ Đẹp, Chèn Bảng Tóm Tắt & Gợi Ý iPad'
 };
 const DEFAULT_FAVORITE_COLORS = ['#111827', '#0ea5e9', '#fb7185', '#10b981', '#fbbf24'];
 const DEFAULT_HIGHLIGHTER_COLORS = ['#fef08a', '#86efac', '#f9a8d4', '#7dd3fc', '#fdba74'];

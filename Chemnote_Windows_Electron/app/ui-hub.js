@@ -514,10 +514,18 @@ function setFountainNibAngle(deg) {
     if (typeof renderAll === 'function') renderAll();
     if (typeof showGestureToast === 'function') {
         showGestureToast(appLibrary.fountainNibAngle === 90
-            ? 'Bút máy Notewise Chuẩn (Thanh–Đậm siêu mượt)'
+            ? 'Bút máy Chuẩn chữ đẹp (Thanh – Đậm sắc nét)'
             : 'Bút máy 35° Nghiêng cổ điển');
     }
 }
+
+function onFountainContrastChange(val) {
+    const num = Math.max(0.35, Math.min(1.35, parseFloat(val) || 1.0));
+    appLibrary.fountainContrast = Number(num.toFixed(2));
+    if (typeof persistLibrary === 'function') persistLibrary();
+    syncPenSettingsPopoverUI();
+}
+window.onFountainContrastChange = onFountainContrastChange;
 
 function syncPenSettingsPopoverUI() {
     const isEraser = window.unifiedTool === 'pen_eraser';
@@ -532,6 +540,15 @@ function syncPenSettingsPopoverUI() {
         const deg = appLibrary.fountainNibAngle === 35 ? 35 : 90;
         document.getElementById('nibAngle90Btn')?.classList.toggle('active', deg === 90);
         document.getElementById('nibAngle35Btn')?.classList.toggle('active', deg === 35);
+        const fc = (typeof appLibrary.fountainContrast === 'number' && Number.isFinite(appLibrary.fountainContrast)) ? appLibrary.fountainContrast : 1.0;
+        const fcSlider = document.getElementById('fountainContrastSlider');
+        const fcLbl = document.getElementById('fountainContrastValLbl');
+        if (fcSlider) fcSlider.value = String(fc);
+        if (fcLbl) {
+            const pct = Math.round(fc * 100);
+            const tag = fc <= 0.55 ? 'Nhẹ' : (fc >= 1.2 ? 'Nghệ thuật' : 'Chuẩn');
+            fcLbl.textContent = `${tag} (${pct}%)`;
+        }
     }
 
     if (isHighlighter) {
@@ -10648,6 +10665,133 @@ function closeWindowsDownloadModal() {
 
 window.openWindowsDownloadModal = openWindowsDownloadModal;
 window.closeWindowsDownloadModal = closeWindowsDownloadModal;
+
+/* --- GỢI Ý THÔNG MINH 1 CHẠM CHO IPAD ĐỜI CŨ / BÚT NGOÀI --- */
+function showTouchDrawHintToastIfNeeded() {
+    if (window._touchDrawHintDismissed || window._hasSeenRealPenInSession) return;
+    if (typeof isElectronDesktopApp === 'function' && isElectronDesktopApp()) return;
+    const cfg = typeof ensureIpadConfig === 'function' ? ensureIpadConfig() : {};
+    if (cfg.singleFingerMode === 'draw') return;
+    document.getElementById('touchDrawHintToast')?.classList?.remove('hidden');
+}
+
+function enableOneTouchDrawFromHint() {
+    if (typeof setIpadConfigOption === 'function') {
+        setIpadConfigOption('singleFingerMode', 'draw');
+    }
+    dismissTouchDrawHint(true);
+}
+
+function dismissTouchDrawHint(permanent = true) {
+    if (permanent) window._touchDrawHintDismissed = true;
+    document.getElementById('touchDrawHintToast')?.classList?.add('hidden');
+}
+
+window.showTouchDrawHintToastIfNeeded = showTouchDrawHintToastIfNeeded;
+window.enableOneTouchDrawFromHint = enableOneTouchDrawFromHint;
+window.dismissTouchDrawHint = dismissTouchDrawHint;
+
+/* --- CHÈN NHANH BẢNG TÓM TẮT 2–4 CỘT LÊN GIẤY A4 --- */
+const insertTableState = { cols: 3, rows: 3, theme: 'slate' };
+
+function renderSummaryTableDataUrl(cols, rows, theme) {
+    const cCount = Math.max(2, Math.min(4, Number(cols) || 3));
+    const rCount = Math.max(2, Math.min(5, Number(rows) || 3));
+    const palettes = {
+        slate:   { hdrBg: 'rgba(148, 163, 184, 0.28)', border: '#475569' },
+        sky:     { hdrBg: 'rgba(56, 189, 248, 0.24)',  border: '#0369a1' },
+        emerald: { hdrBg: 'rgba(52, 211, 153, 0.24)',  border: '#047857' },
+        rose:    { hdrBg: 'rgba(251, 113, 133, 0.22)', border: '#be123c' }
+    };
+    const pal = palettes[theme] || palettes.slate;
+    const dpr = 2;
+    const w = 560;
+    const hdrH = 44;
+    const rowH = 56;
+    const h = hdrH + (rCount - 1) * rowH;
+    const pad = 4;
+    const cvs = document.createElement('canvas');
+    cvs.width = (w + pad * 2) * dpr;
+    cvs.height = (h + pad * 2) * dpr;
+    const g = cvs.getContext('2d');
+    g.scale(dpr, dpr);
+    g.translate(pad, pad);
+
+    // Hàng tiêu đề tô màu dịu (nền thân bảng trong suốt để tiệp giấy ô li)
+    g.fillStyle = pal.hdrBg;
+    g.fillRect(0, 0, w, hdrH);
+
+    // Viền ngoài & đường kẻ sắc nét
+    g.strokeStyle = pal.border;
+    g.lineWidth = 1.8;
+    g.strokeRect(0, 0, w, h);
+
+    g.lineWidth = 1.3;
+    // Đường ngăn hàng tiêu đề đậm hơn nhẹ
+    g.beginPath();
+    g.moveTo(0, hdrH);
+    g.lineTo(w, hdrH);
+    g.stroke();
+
+    // Các hàng còn lại
+    for (let r = 2; r < rCount; r++) {
+        const y = hdrH + (r - 1) * rowH;
+        g.beginPath();
+        g.moveTo(0, y);
+        g.lineTo(w, y);
+        g.stroke();
+    }
+    // Các cột dọc
+    const colW = w / cCount;
+    for (let c = 1; c < cCount; c++) {
+        const x = Math.round(c * colW);
+        g.beginPath();
+        g.moveTo(x, 0);
+        g.lineTo(x, h);
+        g.stroke();
+    }
+    return { dataUrl: cvs.toDataURL('image/png'), natW: w + pad * 2, natH: h + pad * 2 };
+}
+
+function syncInsertTableModalUI() {
+    [2, 3, 4].forEach(c => document.getElementById('tblColBtn' + c)?.classList?.toggle('active', insertTableState.cols === c));
+    [2, 3, 4, 5].forEach(r => document.getElementById('tblRowBtn' + r)?.classList?.toggle('active', insertTableState.rows === r));
+    ['slate', 'sky', 'emerald', 'rose'].forEach(t => document.getElementById('tblThemeBtn_' + t)?.classList?.toggle('active', insertTableState.theme === t));
+    const prev = document.getElementById('insertTablePreviewImg');
+    if (prev) {
+        const res = renderSummaryTableDataUrl(insertTableState.cols, insertTableState.rows, insertTableState.theme);
+        prev.src = res.dataUrl;
+    }
+}
+
+function openInsertTableModal() {
+    closeAllPopovers();
+    syncInsertTableModalUI();
+    document.getElementById('insertTableModal')?.classList?.remove('hidden');
+}
+
+function closeInsertTableModal() {
+    document.getElementById('insertTableModal')?.classList?.add('hidden');
+}
+
+function setInsertTableOpt(key, val) {
+    insertTableState[key] = val;
+    syncInsertTableModalUI();
+}
+
+function confirmInsertSummaryTable() {
+    const { dataUrl, natW, natH } = renderSummaryTableDataUrl(insertTableState.cols, insertTableState.rows, insertTableState.theme);
+    closeInsertTableModal();
+    insertDataUrlImageToPage(dataUrl, natW, natH, { maxW: Math.min(560, A4_WIDTH * 0.82), maxH: Math.round(A4_HEIGHT * 0.55) });
+    if (typeof showGestureToast === 'function') {
+        showGestureToast(`📊 Đã chèn bảng ${insertTableState.cols} cột × ${insertTableState.rows} hàng — kéo góc để chỉnh kích cỡ hoặc bấm Khóa rồi viết vào ô!`);
+    }
+}
+
+window.openInsertTableModal = openInsertTableModal;
+window.closeInsertTableModal = closeInsertTableModal;
+window.setInsertTableOpt = setInsertTableOpt;
+window.confirmInsertSummaryTable = confirmInsertSummaryTable;
 
 // ============================================================================
 // SECTION 10: BẢNG TUẦN HOÀN 118 NGUYÊN TỐ & MÁY TÍNH PHÂN TỬ KHỐI (M)

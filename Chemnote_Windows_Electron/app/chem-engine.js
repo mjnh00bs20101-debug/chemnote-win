@@ -3238,6 +3238,8 @@ canvas.addEventListener('pointerdown', e => {
     }
 
     if (e.pointerType === 'pen') {
+        window._hasSeenRealPenInSession = true;
+        if (typeof dismissTouchDrawHint === 'function') dismissTouchDrawHint(false);
         if (nativeSinglePanState.active && typeof nativeSinglePanState.startPanX === 'number' &&
             (nowMs - (nativeSinglePanState.startTime || 0)) < 280 &&
             Math.hypot(panX - nativeSinglePanState.startPanX, panY - nativeSinglePanState.startPanY) < 48) {
@@ -3685,6 +3687,7 @@ canvas.addEventListener('pointerdown', e => {
             mode: t === 'pen_highlighter' ? 'highlighter' : 'ink',
             penStyle: activePenStyle,
             nibAngle: (appLibrary.fountainNibAngle === 35 ? 35 : 90),
+            fountainContrast: (typeof appLibrary.fountainContrast === 'number' && Number.isFinite(appLibrary.fountainContrast)) ? appLibrary.fountainContrast : 1.0,
             color: t === 'pen_highlighter' ? hlCol : penColor,
             width: t === 'pen_highlighter' ? hlW : strokeWidth,
             hlAlpha: t === 'pen_highlighter' ? hlAlpha : undefined,
@@ -4048,6 +4051,8 @@ const handleCanvasPointerMove = e => {
         }
     }
     if (e.pointerType === 'pen') {
+        window._hasSeenRealPenInSession = true;
+        if (typeof dismissTouchDrawHint === 'function') dismissTouchDrawHint(false);
         lastPenHoverAt = nowMove;
         if (typeof e.buttons === 'number' && e.buttons === 0) {
             if (activePenPointerId !== null && (e.pointerId === activePenPointerId || (nowMove - lastPenActivityAt) > 120)) {
@@ -5052,8 +5057,8 @@ function finishPointer(e) {
             if (tailDist > minTail && tailDist < 400) {
                 const lastP = (typeof lastPt?.p === 'number' && lastPt.p > 0) ? lastPt.p : 0.36;
                 const tailP = (e.pointerType === 'pen' && typeof e.pressure === 'number' && e.pressure > 0 && e.pressure <= 1)
-                    ? Math.min(lastP, e.pressure)
-                    : (lastP * 0.72);
+                    ? Math.max(lastP * 0.92, Math.min(lastP, e.pressure))
+                    : lastP;
                 const tailT = typeof sTs === 'number' ? Math.max((lastPt?.t || 0) + 0.5, Number((endTs - sTs).toFixed(2))) : undefined;
                 inkPts.push(typeof tailT === 'number'
                     ? { x: endW.x, y: endW.y, p: tailP, t: tailT }
@@ -5733,6 +5738,15 @@ function handleNativeTouchEndOrCancel(e) {
             const wasPanAct = !!nativeSinglePanState.panActivated;
             const sinceMoveN = nowT - (nativeSinglePanState.lastMoveTime || nowT);
             const vxN = nativeSinglePanState.velX || 0;
+            if (wasMoved && !wasEdge && !nativeSinglePanState.fromPinchRelease &&
+                !window._hasSeenRealPenInSession &&
+                (typeof isReadMode === 'undefined' || !isReadMode) &&
+                window.unifiedTool && window.unifiedTool !== 'pen_pan') {
+                window._sfPanWhileDrawCount = (window._sfPanWhileDrawCount || 0) + 1;
+                if (window._sfPanWhileDrawCount === 3 && typeof showTouchDrawHintToastIfNeeded === 'function') {
+                    showTouchDrawHintToastIfNeeded();
+                }
+            }
             const vyN = nativeSinglePanState.velY || 0;
             nativeSinglePanState.active = false;
             nativeSinglePanState.isEdgeSwipe = false;

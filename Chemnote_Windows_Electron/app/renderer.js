@@ -401,8 +401,9 @@ function drawPaperBackground(c, pageOrTpl) {
     }
 }
 
-function computeNotewiseInkWidth(style, baseW, dirX, dirY, speedPxPerMs, pressure, sArc, totalLen, nibAngleDeg, hasStrokeP, isLiveStroke = false) {
+function computeNotewiseInkWidth(style, baseW, dirX, dirY, speedPxPerMs, pressure, sArc, totalLen, nibAngleDeg, hasStrokeP, isLiveStroke = false, fountainContrast = 1.0) {
     const spd = Number.isFinite(speedPxPerMs) ? Math.max(0.06, Math.min(2.2, speedPxPerMs)) : 0.36;
+    const contrast = Number.isFinite(Number(fountainContrast)) ? Math.max(0.35, Math.min(1.35, Number(fountainContrast))) : 1.0;
     let widthMul = 1.0;
 
     if (style === 'fountain') {
@@ -411,68 +412,41 @@ function computeNotewiseInkWidth(style, baseW, dirX, dirY, speedPxPerMs, pressur
             const ang = Math.atan2(dirY, dirX);
             const ob = Math.abs(Math.sin(ang + 0.6109));
             const obS = ob * ob * (3 - 2 * ob);
-            dirW = 0.56 + obS * 0.66 + Math.max(0, dirY) * 0.06;
+            dirW = 0.38 + obS * 1.12;
         } else {
-            // Bút máy Vector chuẩn Notewise (Wisenote): góc ngòi tự nhiên ~16°, đường cong C1 smoothstep siêu mượt (không gồ ghề trên chữ tròn), nét sổ đầy mực (1.24x), nét ngang sắc rõ (0.76x), nét hất lên thanh thoát (0.46x)
-            const downProj = Math.max(-1, Math.min(1, dirY * 0.96 - dirX * 0.28));
+            // Bút máy Calligraphy chuẩn Samsung Notes / GoodNotes:
+            // Trục nghiêng tự nhiên chữ viết tay Việt (~18°): nét kéo xuống đậm đầy mực (1.52x), nét ngang vừa gọn (0.62x), nét đưa lên thanh mảnh sắc nét (0.36x)
+            const downProj = Math.max(-1, Math.min(1, dirY * 0.95 - dirX * 0.31));
             if (downProj >= 0) {
                 const s = downProj * downProj * (3 - 2 * downProj);
-                dirW = 0.76 + 0.48 * s;
+                dirW = 0.62 + 0.90 * s;
             } else {
                 const a = -downProj;
                 const s = a * a * (3 - 2 * a);
-                dirW = 0.76 - 0.30 * s;
+                dirW = 0.62 - 0.26 * s;
             }
         }
-        // Dòng mực lỏng theo vận tốc kiểu Notewise (smoothstep êm mượt): chậm đầy mực (1.11x), lướt nhanh thanh gọn (0.69x)
-        const velNorm = Math.min(1, Math.max(0, (spd - 0.14) / 1.35));
+        // Áp dụng thanh chỉnh Độ tương phản Thanh – Đậm (quanh trục 0.90)
+        dirW = 0.90 + (dirW - 0.90) * contrast;
+        // Điều tiết tốc độ nhẹ tay để nét kéo xuống nhanh vẫn giữ trọn độ đậm thanh lịch
+        const velNorm = Math.min(1, Math.max(0, (spd - 0.16) / 1.45));
         const vEase = velNorm * velNorm * (3 - 2 * velNorm);
-        const velW = 1.11 - vEase * 0.42;
+        const velW = 1.06 - vEase * 0.18;
         let pressW = 1.0;
         if (hasStrokeP && typeof pressure === 'number' && Number.isFinite(pressure)) {
-            const pNorm = Math.max(0.06, Math.min(0.96, pressure));
-            // Lực nhấn Apple Pencil phản hồi tự nhiên, không cắt trần khi nhấn đậm (0.60..1.34)
-            pressW = 0.60 + Math.pow(pNorm, 0.76) * 0.74;
+            const pNorm = Math.max(0.08, Math.min(0.96, pressure));
+            // Lực nhấn Apple Pencil / Stylus bổ trợ mượt (0.78..1.22), viết nhẹ vẫn sắc thanh-đậm rõ ràng
+            pressW = 0.78 + Math.pow(pNorm, 0.78) * 0.44;
         }
         widthMul = dirW * velW * pressW;
     } else if (style === 'brush') {
-        const velNorm = Math.min(1, Math.max(0, (spd - 0.14) / 1.35));
-        const vEase = velNorm * velNorm * (3 - 2 * velNorm);
-        const velW = 1.15 - vEase * 0.44;
-        let pressW = 1.0;
-        if (hasStrokeP && typeof pressure === 'number' && Number.isFinite(pressure)) {
-            const pNorm = Math.max(0.06, Math.min(0.96, pressure));
-            pressW = 0.52 + Math.pow(pNorm, 0.74) * 0.90;
-        } else {
-            const downBoost = Math.max(0, dirY) * 0.20;
-            pressW = 0.88 + downBoost;
-        }
-        widthMul = velW * pressW;
+        widthMul = 1.0;
     }
 
-    let taper = 1.0;
-    const minTaperLen = Math.max(3.5, baseW * 1.0);
-    if (totalLen > minTaperLen) {
-        const entryLen = Math.min(style === 'brush' ? 9.0 : 6.5, totalLen * 0.12);
-        if (sArc < entryLen && entryLen > 0.1) {
-            const uIn = Math.max(0, Math.min(1, sArc / entryLen));
-            const startMin = style === 'brush' ? 0.46 : 0.58;
-            taper *= startMin + (1 - startMin) * (1 - (1 - uIn) * (1 - uIn));
-        }
-        const exitLen = isLiveStroke
-            ? Math.min(5.0, totalLen * 0.10)
-            : Math.min(style === 'brush' ? 18.0 : 14.5, totalLen * 0.25);
-        const rem = totalLen - sArc;
-        if (rem < exitLen && exitLen > 0.1) {
-            const uOut = Math.max(0, Math.min(1, rem / exitLen));
-            const endMin = isLiveStroke ? 0.56 : (style === 'brush' ? 0.16 : 0.22);
-            taper *= endMin + (1 - endMin) * Math.pow(uOut, 1.02);
-        }
-    }
-
-    const minFloor = style === 'fountain' ? Math.max(0.42, baseW * 0.18) : Math.max(0.40, baseW * 0.16);
-    const maxCeil = Math.max(1.5, baseW * (style === 'brush' ? 1.56 : 1.56));
-    return Math.max(minFloor, Math.min(maxCeil, baseW * widthMul * taper));
+    // Giữ đầu/cuối nét tròn đầy tự nhiên, cho phép nét đưa lên thanh mảnh (0.32x) và nét kéo xuống đậm nổi bật (1.68x)
+    const minFloor = Math.max(0.45, baseW * 0.32);
+    const maxCeil = Math.max(1.8, baseW * 1.68);
+    return Math.max(minFloor, Math.min(maxCeil, baseW * widthMul));
 }
 
 function getHexColorLuminance(hex) {
@@ -659,9 +633,12 @@ function drawSmoothInkStroke(c, st, paperIsDark = false) {
         const nibDeg = (st.nibAngle === 35 || st.nibAngle === 90)
             ? st.nibAngle
             : ((typeof appLibrary !== 'undefined' && appLibrary?.fountainNibAngle === 35) ? 35 : 90);
+        const fContrast = (typeof st.fountainContrast === 'number' && Number.isFinite(st.fountainContrast))
+            ? st.fountainContrast
+            : ((typeof appLibrary !== 'undefined' && typeof appLibrary?.fountainContrast === 'number') ? appLibrary.fountainContrast : 1.0);
         const hasStrokeP = !!st.hasPressure;
         const cacheKey = !isLiveStroke && strokeRibbonCache
-            ? (pts.length + '|' + baseW + '|' + style + '|' + nibDeg + '|' + (hasStrokeP ? 1 : 0))
+            ? (pts.length + '|' + baseW + '|' + style + '|' + nibDeg + '|' + fContrast.toFixed(2) + '|' + (hasStrokeP ? 1 : 0))
             : '';
         if (cacheKey) {
             const cachedRibbon = strokeRibbonCache.get(st);
@@ -732,8 +709,9 @@ function drawSmoothInkStroke(c, st, paperIsDark = false) {
             }
         }
         if (nPts >= 3 && hasStrokeP) {
-            ptPress[0] = Math.min(ptPress[0], ptPress[1] * 0.92);
-            ptPress[nPts - 1] = Math.min(ptPress[nPts - 1], ptPress[nPts - 2] * 0.78);
+            // Giữ lực ở đầu và cuối nét ổn định khi nhấc bút, tránh bị tụt lực làm bé đuôi nét
+            if (ptPress[0] < ptPress[1] * 0.85) ptPress[0] = ptPress[1];
+            if (ptPress[nPts - 1] < ptPress[nPts - 2] * 0.85) ptPress[nPts - 1] = ptPress[nPts - 2];
         }
         for (let i = 1; i < nPts; i++) {
             let j = i - 1;
@@ -827,39 +805,39 @@ function drawSmoothInkStroke(c, st, paperIsDark = false) {
             }
 
             let sDirX = tx[0], sDirY = ty[0];
-            widths[0] = computeNotewiseInkWidth(style, baseW, sDirX, sDirY, spine[0].spd, spine[0].p, 0, totalLen, nibDeg, hasStrokeP, isLiveStroke);
+            widths[0] = computeNotewiseInkWidth(style, baseW, sDirX, sDirY, spine[0].spd, spine[0].p, 0, totalLen, nibDeg, hasStrokeP, isLiveStroke, fContrast);
             for (let i = 1; i < m; i++) {
                 const cosT = tx[i] * sDirX + ty[i] * sDirY;
                 if (spine[i - 1].cusp || cosT < 0.35) {
                     sDirX = tx[i]; sDirY = ty[i];
                 } else {
-                    const nx = sDirX * 0.58 + tx[i] * 0.42;
-                    const ny = sDirY * 0.58 + ty[i] * 0.42;
+                    const nx = sDirX * 0.35 + tx[i] * 0.65;
+                    const ny = sDirY * 0.35 + ty[i] * 0.65;
                     const nl = Math.hypot(nx, ny) || 1;
                     sDirX = nx / nl; sDirY = ny / nl;
                 }
-                widths[i] = computeNotewiseInkWidth(style, baseW, sDirX, sDirY, spine[i].spd, spine[i].p, spine[i].s, totalLen, nibDeg, hasStrokeP, isLiveStroke);
+                widths[i] = computeNotewiseInkWidth(style, baseW, sDirX, sDirY, spine[i].spd, spine[i].p, spine[i].s, totalLen, nibDeg, hasStrokeP, isLiveStroke, fContrast);
             }
 
             if (m > 2) {
-                const maxSlope = 0.20;
+                const maxSlope = 0.36;
                 for (let i = 1; i < m; i++) {
-                    const lim = maxSlope * Math.max(0.25, spine[i].s - spine[i - 1].s) + 0.008;
+                    const lim = maxSlope * Math.max(0.25, spine[i].s - spine[i - 1].s) + 0.012;
                     if (widths[i] > widths[i - 1] + lim) widths[i] = widths[i - 1] + lim;
                     else if (widths[i] < widths[i - 1] - lim) widths[i] = widths[i - 1] - lim;
                 }
                 for (let i = m - 2; i >= 0; i--) {
-                    const lim = maxSlope * Math.max(0.25, spine[i + 1].s - spine[i].s) + 0.008;
+                    const lim = maxSlope * Math.max(0.25, spine[i + 1].s - spine[i].s) + 0.012;
                     if (widths[i] > widths[i + 1] + lim) widths[i] = widths[i + 1] + lim;
                     else if (widths[i] < widths[i + 1] - lim) widths[i] = widths[i + 1] - lim;
                 }
-                const wPrev = 0.54, wCur = 0.46;
+                const wPrev = 0.36, wCur = 0.64;
                 for (let i = 1; i < m - 1; i++) widths[i] = widths[i - 1] * wPrev + widths[i] * wCur;
                 for (let i = m - 2; i >= 1; i--) widths[i] = widths[i + 1] * wPrev + widths[i] * wCur;
-                const lim0 = maxSlope * Math.max(0.25, spine[1].s - spine[0].s) + 0.008;
+                const lim0 = maxSlope * Math.max(0.25, spine[1].s - spine[0].s) + 0.012;
                 if (widths[0] > widths[1] + lim0) widths[0] = widths[1] + lim0;
                 else if (widths[0] < widths[1] - lim0) widths[0] = widths[1] - lim0;
-                const limLast = maxSlope * Math.max(0.25, spine[m - 1].s - spine[m - 2].s) + 0.008;
+                const limLast = maxSlope * Math.max(0.25, spine[m - 1].s - spine[m - 2].s) + 0.012;
                 if (widths[m - 1] > widths[m - 2] + limLast) widths[m - 1] = widths[m - 2] + limLast;
                 else if (widths[m - 1] < widths[m - 2] - limLast) widths[m - 1] = widths[m - 2] - limLast;
             }
