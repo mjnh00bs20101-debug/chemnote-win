@@ -42,7 +42,8 @@
 
         <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar min-w-0">
             <div id="pcTopQuickRefBar" class="pc-top-quick-ref-bar hidden">
-                <button onclick="openInsertTableModal()" class="pc-top-ref-btn" title="Chèn nhanh Bảng tóm tắt 2–4 cột lên giấy A4">📊 Chèn Bảng</button>
+                <button onclick="openChemAssistantModal('balance')" class="pc-top-ref-btn" style="border-color:rgba(52,211,153,0.45);color:#6ee7b7;" title="Trợ Lý Hóa Học: Cân bằng PTHH, Phân tích M/k/%, Màu kết tủa, Quy tắc α, SMILES">🔬 Trợ Lý Hóa</button>
+                <button onclick="openInsertTableModal()" class="pc-top-ref-btn" title="Chèn nhanh Bảng tóm tắt, Thẻ ghi chú, Banner & Băng che ôn bài">📊 Bảng &amp; Thẻ</button>
                 <button onclick="openNameReactionsHubModal()" class="pc-top-ref-btn" title="Mở nhanh Kho 185 Name Reactions">📚 185 Phản ứng</button>
                 <button onclick="openReagentsHubModal()" class="pc-top-ref-btn" title="Mở nhanh Sổ Tay 331 Tác Nhân (Chu Văn Phòng)">🧪 331 Tác nhân</button>
                 <button onclick="openPeriodicHubModal()" class="pc-top-ref-btn" title="Mở nhanh Bảng Tuần Hoàn & Tính Phân tử khối M">⚛ BTH</button>
@@ -198,10 +199,20 @@
                 <button onclick="closeAllPopovers(); toggleReadMode();" id="readModeBtn" class="settings-menu-row justify-center px-1.5" title="Chế độ Đọc (Phím M)">📖 Đọc</button>
                 <button onclick="closeAllPopovers(); toggleAppFullscreen();" id="fullscreenToggleBtn" class="settings-menu-row justify-center px-1.5" title="Toàn màn hình">⛶ Toàn màn</button>
             </div>
-            <button onclick="closeAllPopovers(); openInsertTableModal();" id="settingsInsertTableBtn" class="settings-menu-row">
-                <span>📊 Chèn Bảng Tóm Tắt</span>
-                <span class="settings-row-sub">2–4 Cột</span>
+            <button onclick="closeAllPopovers(); openChemAssistantModal('balance');" id="settingsChemAssistantBtn" class="settings-menu-row" style="background:rgba(16,185,129,0.12);border-color:rgba(52,211,153,0.4);">
+                <span>🔬 Trợ Lý Hóa Học Toàn Năng</span>
+                <span class="settings-row-sub text-emerald-300 font-extrabold">5 Công cụ</span>
             </button>
+            <button onclick="closeAllPopovers(); openInsertTableModal();" id="settingsInsertTableBtn" class="settings-menu-row">
+                <span>📊 Bảng, Thẻ Ghi Chú &amp; Băng Che</span>
+                <span class="settings-row-sub">Trang trí &amp; Ôn</span>
+            </button>
+            <div class="grid grid-cols-2 gap-1.5">
+                <button onclick="closeAllPopovers(); openFlashcardsModal();" class="settings-menu-row justify-center px-1.5" title="Bộ thẻ Flashcard lật 2 mặt ôn phản ứng">🃏 Flashcard</button>
+                <button onclick="closeAllPopovers(); openBookmarksModal();" class="settings-menu-row justify-center px-1.5" title="Đánh dấu & Mục lục trang trong vở">🔖 Mục lục</button>
+                <button onclick="closeAllPopovers(); toggleVirtualRuler();" class="settings-menu-row justify-center px-1.5" title="Bật/Tắt Thước kẻ ảo xoay góc trên giấy">📏 Thước ảo</button>
+                <button onclick="closeAllPopovers(); toggleStudyTimerWidget();" class="settings-menu-row justify-center px-1.5" title="Đồng hồ Pomodoro & Đếm ngược làm đề thi">⏱️ Hẹn giờ</button>
+            </div>
             <button onclick="openLabFromSettings(event)" id="menuLabBtn" class="settings-menu-row">
                 <span>🧪 Thí nghiệm ảo &amp; Dụng cụ</span>
                 <span class="settings-row-sub">7 Mô phỏng</span>
@@ -754,6 +765,7 @@
                 <button onclick="scaleSelectedImageBy(0.88)" id="imgScaleDownBtn" class="fbar-btn" title="Thu nhỏ">−</button>
                 <button onclick="scaleSelectedImageBy(1.14)" id="imgScaleUpBtn" class="fbar-btn" title="Phóng to">+</button>
                 <button onclick="duplicateSelectedImage()" id="imgDupBtn" class="fbar-btn" title="Nhân bản">⧉</button>
+                <button onclick="removeWhiteBgFromSelectedImage()" id="imgRemoveBgBtn" class="fbar-btn" style="width:auto;padding:0 9px;font-size:11px;gap:4px;" title="Tự động tách nền trắng trong suốt cho ảnh đề bài / hình vẽ sách giáo khoa">🪄 Tách nền</button>
                 <button onclick="toggleSelectedImageLock()" id="imgLockBtn" class="fbar-btn" style="width:auto;padding:0 9px;font-size:11px;gap:4px;" title="Cố định ảnh: không thể di chuyển và không bị Lasso khoanh nhầm">📌 Cố định</button>
                 <button onclick="deleteSelectedImage()" id="imgDeleteBtn" class="fbar-btn danger" title="Xóa ảnh">✕</button>
                 <button onclick="clearActiveImageSelection()" id="imgDoneBtn" class="fbar-btn primary" title="Xong">✓</button>
@@ -1317,10 +1329,10 @@
                             <div class="text-[11px] text-slate-300 mt-0.5">Dành cho máy tính Windows 10 &amp; 11 (64-bit). Đã tích hợp tính năng tự động cập nhật và chạy mượt mà không cần mạng.</div>
                         </div>
                         <div class="flex items-center gap-2 flex-wrap">
-                            <a href="https://github.com/mjnh00bs20101-debug/chemnote-win/releases/download/v15.15.2/ChemNote-Setup-15.15.2-win-x64.exe" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-[11px] shadow-md flex items-center gap-1 transition">
+                            <a href="https://github.com/mjnh00bs20101-debug/chemnote-win/releases/download/v15.16.0/ChemNote-Setup-15.16.0-win-x64.exe" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-[11px] shadow-md flex items-center gap-1 transition">
                                 <span>⬇ Tải Bản Setup (.exe)</span>
                             </a>
-                            <a href="https://github.com/mjnh00bs20101-debug/chemnote-win/releases/download/v15.15.2/ChemNote-Portable-15.15.2-win-x64.exe" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 font-bold text-[11px] flex items-center gap-1 transition">
+                            <a href="https://github.com/mjnh00bs20101-debug/chemnote-win/releases/download/v15.16.0/ChemNote-Portable-15.16.0-win-x64.exe" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 font-bold text-[11px] flex items-center gap-1 transition">
                                 <span>⚡ Bản Portable</span>
                             </a>
                             <a href="https://github.com/mjnh00bs20101-debug/chemnote-win/releases/latest" target="_blank" rel="noopener noreferrer" class="px-2 py-1.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/35 text-sky-300 font-bold text-[11px] transition" title="Xem trên GitHub Releases">
@@ -1506,55 +1518,288 @@
         <button type="button" onclick="dismissTouchDrawHint()" class="w-6 h-6 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 text-xs font-bold shrink-0" title="Đóng">✕</button>
     </div>
 
-    <!-- MODAL CHÈN NHANH BẢNG TÓM TẮT HÓA HỌC (2-4 CỘT) -->
+    <!-- MODAL BẢNG TÓM TẮT, THẺ GHI CHÚ, BANNER TIÊU ĐỀ & BĂNG CHE ÔN BÀI -->
     <div id="insertTableModal" onclick="closeInsertTableModal()" class="hidden fixed inset-0 bg-black/75 z-[960] flex items-center justify-center p-3 sm:p-4" style="backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);">
-        <div onclick="event.stopPropagation()" class="help-modal-card w-full max-w-md flex flex-col overflow-hidden">
+        <div onclick="event.stopPropagation()" class="help-modal-card w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
             <div class="flex items-center justify-between px-4 py-3 border-b border-black/15">
                 <div class="flex items-center gap-2.5">
                     <div class="w-8 h-8 rounded-xl flex items-center justify-center text-base" style="background:var(--accent-soft);color:var(--accent);">📊</div>
                     <div>
-                        <div class="font-extrabold text-sm" style="color:var(--text-main);">Chèn Bảng Tóm Tắt Lên Giấy</div>
-                        <div class="text-[11px]" style="color:var(--text-muted);">Kéo giãn kích thước &amp; viết trực tiếp vào ô như vở ghi đẹp</div>
+                        <div class="font-extrabold text-sm" style="color:var(--text-main);">Bảng, Thẻ Ghi Chú, Banner &amp; Băng Che Ôn Bài</div>
+                        <div class="text-[11px]" style="color:var(--text-muted);">Trang trí vở Studygram &amp; dán băng che kiểm tra trí nhớ trực tiếp trên giấy A4</div>
                     </div>
                 </div>
                 <button onclick="closeInsertTableModal()" class="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold hover:opacity-80" style="background:rgba(148,163,184,0.16);color:var(--text-main);">✕</button>
             </div>
-            <div class="p-4 space-y-3.5 text-xs">
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <div class="font-bold text-[11px] mb-1.5" style="color:var(--text-muted);">Số cột</div>
-                        <div class="grid grid-cols-3 gap-1.5">
-                            <button type="button" onclick="setInsertTableOpt('cols', 2)" id="tblColBtn2" class="chip-btn text-xs">2 cột</button>
-                            <button type="button" onclick="setInsertTableOpt('cols', 3)" id="tblColBtn3" class="chip-btn text-xs active">3 cột</button>
-                            <button type="button" onclick="setInsertTableOpt('cols', 4)" id="tblColBtn4" class="chip-btn text-xs">4 cột</button>
+            <div class="flex items-center gap-1.5 px-4 pt-3 pb-2 border-b border-black/15 overflow-x-auto no-scrollbar">
+                <button type="button" id="decorTabBtn_table" onclick="switchDecorModalTab('table')" class="help-tab-btn active">📊 Bảng Tóm Tắt</button>
+                <button type="button" id="decorTabBtn_sticky" onclick="switchDecorModalTab('sticky')" class="help-tab-btn">📌 Thẻ Ghi Chú</button>
+                <button type="button" id="decorTabBtn_banner" onclick="switchDecorModalTab('banner')" class="help-tab-btn">✨ Banner Tiêu Đề</button>
+                <button type="button" id="decorTabBtn_tape" onclick="switchDecorModalTab('tape')" class="help-tab-btn">🃏 Băng Che Ôn Bài</button>
+            </div>
+            <div class="p-4 space-y-3.5 text-xs overflow-y-auto">
+                <div id="decorPanel_table" class="space-y-3.5">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <div class="font-bold text-[11px] mb-1.5" style="color:var(--text-muted);">Số cột</div>
+                            <div class="grid grid-cols-3 gap-1.5">
+                                <button type="button" onclick="setInsertTableOpt('cols', 2)" id="tblColBtn2" class="chip-btn text-xs">2 cột</button>
+                                <button type="button" onclick="setInsertTableOpt('cols', 3)" id="tblColBtn3" class="chip-btn text-xs active">3 cột</button>
+                                <button type="button" onclick="setInsertTableOpt('cols', 4)" id="tblColBtn4" class="chip-btn text-xs">4 cột</button>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="font-bold text-[11px] mb-1.5" style="color:var(--text-muted);">Số hàng (gồm tiêu đề)</div>
+                            <div class="grid grid-cols-4 gap-1">
+                                <button type="button" onclick="setInsertTableOpt('rows', 2)" id="tblRowBtn2" class="chip-btn text-xs">2</button>
+                                <button type="button" onclick="setInsertTableOpt('rows', 3)" id="tblRowBtn3" class="chip-btn text-xs active">3</button>
+                                <button type="button" onclick="setInsertTableOpt('rows', 4)" id="tblRowBtn4" class="chip-btn text-xs">4</button>
+                                <button type="button" onclick="setInsertTableOpt('rows', 5)" id="tblRowBtn5" class="chip-btn text-xs">5</button>
+                            </div>
                         </div>
                     </div>
                     <div>
-                        <div class="font-bold text-[11px] mb-1.5" style="color:var(--text-muted);">Số hàng (gồm tiêu đề)</div>
-                        <div class="grid grid-cols-4 gap-1">
-                            <button type="button" onclick="setInsertTableOpt('rows', 2)" id="tblRowBtn2" class="chip-btn text-xs">2</button>
-                            <button type="button" onclick="setInsertTableOpt('rows', 3)" id="tblRowBtn3" class="chip-btn text-xs active">3</button>
-                            <button type="button" onclick="setInsertTableOpt('rows', 4)" id="tblRowBtn4" class="chip-btn text-xs">4</button>
-                            <button type="button" onclick="setInsertTableOpt('rows', 5)" id="tblRowBtn5" class="chip-btn text-xs">5</button>
+                        <div class="font-bold text-[11px] mb-1.5" style="color:var(--text-muted);">Màu hàng tiêu đề</div>
+                        <div class="grid grid-cols-4 gap-1.5">
+                            <button type="button" onclick="setInsertTableOpt('theme', 'slate')" id="tblThemeBtn_slate" class="chip-btn text-[11px] active">⬜ Xám nhẹ</button>
+                            <button type="button" onclick="setInsertTableOpt('theme', 'sky')" id="tblThemeBtn_sky" class="chip-btn text-[11px]">🟦 Xanh dương</button>
+                            <button type="button" onclick="setInsertTableOpt('theme', 'emerald')" id="tblThemeBtn_emerald" class="chip-btn text-[11px]">🟩 Xanh ngọc</button>
+                            <button type="button" onclick="setInsertTableOpt('theme', 'rose')" id="tblThemeBtn_rose" class="chip-btn text-[11px]">🩷 Hồng dịu</button>
                         </div>
+                    </div>
+                    <div class="rounded-xl border border-black/15 bg-white/95 p-3 flex items-center justify-center">
+                        <img id="insertTablePreviewImg" alt="Xem trước bảng" class="max-w-full max-h-36 object-contain" />
+                    </div>
+                    <div class="flex justify-end">
+                        <button type="button" onclick="confirmInsertSummaryTable()" class="h-9 px-4 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 text-xs font-extrabold shadow-lg transition">✓ Chèn bảng ra giấy</button>
                     </div>
                 </div>
+
+                <div id="decorPanel_sticky" class="hidden space-y-3">
+                    <input id="stickyCustomTitleInput" type="text" placeholder="Tiêu đề tùy chọn (để trống sẽ dùng mặc định)..." class="w-full h-9 px-3 rounded-xl bg-black/25 border border-slate-700 text-xs text-white outline-none focus:border-sky-400" />
+                    <div class="grid grid-cols-2 gap-2">
+                        <button type="button" onclick="insertStickyCalloutToPaper('exception', document.getElementById('stickyCustomTitleInput').value)" class="p-3 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/45 text-amber-200 font-extrabold text-left">⚠️ Ngoại lệ cần nhớ<div class="text-[10px] font-normal opacity-80 mt-0.5">VD: Trừ Au, Pt, Ag...</div></button>
+                        <button type="button" onclick="insertStickyCalloutToPaper('tip', document.getElementById('stickyCustomTitleInput').value)" class="p-3 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/45 text-sky-200 font-extrabold text-left">💡 Mẹo nhớ nhanh<div class="text-[10px] font-normal opacity-80 mt-0.5">Ghi chú xanh pastel dịu</div></button>
+                        <button type="button" onclick="insertStickyCalloutToPaper('cond', document.getElementById('stickyCustomTitleInput').value)" class="p-3 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-400/45 text-rose-200 font-extrabold text-left">🔥 Điều kiện phản ứng<div class="text-[10px] font-normal opacity-80 mt-0.5">Nhiệt độ, xúc tác, lưu ý</div></button>
+                        <button type="button" onclick="insertStickyCalloutToPaper('focus', document.getElementById('stickyCustomTitleInput').value)" class="p-3 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-400/45 text-emerald-200 font-extrabold text-left">⭐ Trọng tâm thi<div class="text-[10px] font-normal opacity-80 mt-0.5">Công thức / định luật</div></button>
+                    </div>
+                </div>
+
+                <div id="decorPanel_banner" class="hidden space-y-3">
+                    <input id="bannerTitleInput" type="text" value="CĐ2: TÍNH CHẤT HÓA HỌC CỦA KIM LOẠI" placeholder="Nhập tiêu đề chương / chuyên đề..." class="w-full h-9 px-3 rounded-xl bg-black/25 border border-slate-700 text-xs text-white outline-none focus:border-sky-400" />
+                    <div class="grid grid-cols-2 gap-2">
+                        <button type="button" onclick="insertStudyBannerToPaper(document.getElementById('bannerTitleInput').value, 'ribbon_sky')" class="h-10 rounded-xl bg-gradient-to-r from-sky-600 to-sky-400 text-white font-extrabold text-xs">✨ Ruy-băng Xanh</button>
+                        <button type="button" onclick="insertStudyBannerToPaper(document.getElementById('bannerTitleInput').value, 'ribbon_rose')" class="h-10 rounded-xl bg-gradient-to-r from-rose-600 to-rose-400 text-white font-extrabold text-xs">✨ Ruy-băng Đỏ Hồng</button>
+                        <button type="button" onclick="insertStudyBannerToPaper(document.getElementById('bannerTitleInput').value, 'ribbon_mint')" class="h-10 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-400 text-white font-extrabold text-xs">✨ Ruy-băng Xanh Ngọc</button>
+                        <button type="button" onclick="insertStudyBannerToPaper(document.getElementById('bannerTitleInput').value, 'highlight')" class="h-10 rounded-xl bg-yellow-300 text-slate-950 font-extrabold text-xs">✨ Dạ Quang Vàng Nổi</button>
+                    </div>
+                </div>
+
+                <div id="decorPanel_tape" class="hidden space-y-3">
+                    <div class="p-3 rounded-xl bg-sky-500/10 border border-sky-400/30 text-[11px] text-slate-200">
+                        Dán <b>Băng Che Ôn Bài</b> lên sản phẩm phản ứng hoặc công thức trên giấy — khi ôn tập chỉ cần <b>chạm vào dải băng để hé mở / che lại</b>!
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button type="button" onclick="addStudyTapeToPage('#7dd3fc'); closeInsertTableModal();" class="h-9 rounded-xl bg-sky-300 text-slate-950 font-extrabold text-xs">+ Dán Băng Xanh</button>
+                        <button type="button" onclick="addStudyTapeToPage('#fde047'); closeInsertTableModal();" class="h-9 rounded-xl bg-yellow-300 text-slate-950 font-extrabold text-xs">+ Dán Băng Vàng</button>
+                        <button type="button" onclick="addStudyTapeToPage('#fda4af'); closeInsertTableModal();" class="h-9 rounded-xl bg-rose-300 text-slate-950 font-extrabold text-xs">+ Dán Băng Hồng</button>
+                        <button type="button" onclick="addStudyTapeToPage('#86efac'); closeInsertTableModal();" class="h-9 rounded-xl bg-emerald-300 text-slate-950 font-extrabold text-xs">+ Dán Băng Xanh Lá</button>
+                    </div>
+                    <div class="flex flex-wrap gap-2 pt-1 border-t border-black/15">
+                        <button type="button" onclick="toggleAllStudyTapes(true)" class="flex-1 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-sky-300 font-bold text-[11px]">👁 Mở tất cả</button>
+                        <button type="button" onclick="toggleAllStudyTapes(false)" class="flex-1 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-[11px]">🙈 Che tất cả</button>
+                        <button type="button" onclick="clearPageStudyTapes()" class="h-8 px-3 rounded-lg bg-rose-500/20 hover:bg-rose-500/35 text-rose-300 font-bold text-[11px]">🗑 Xóa hết</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL TRỢ LÝ HÓA HỌC TOÀN NĂNG (5 TABS OFFLINE 100%) -->
+    <div id="chemAssistantModal" onclick="closeChemAssistantModal()" class="hidden fixed inset-0 bg-black/80 z-[962] flex items-center justify-center p-2.5 sm:p-4" style="backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);">
+        <div onclick="event.stopPropagation()" class="help-modal-card w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="flex items-center justify-between px-4 py-3 border-b border-black/15">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center text-lg bg-emerald-500/20 border border-emerald-400/40 text-emerald-300">🔬</div>
+                    <div>
+                        <div class="font-extrabold text-sm" style="color:var(--text-main);">Trợ Lý Hóa Học Toàn Năng (100% Offline)</div>
+                        <div class="text-[11px]" style="color:var(--text-muted);">Cân bằng PTHH · Phân tích M/k/% · Màu kết tủa · Quy tắc α · Vẽ phân tử từ Tên/SMILES</div>
+                    </div>
+                </div>
+                <button onclick="closeChemAssistantModal()" class="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold hover:opacity-80" style="background:rgba(148,163,184,0.16);color:var(--text-main);">✕</button>
+            </div>
+            <div class="flex items-center gap-1.5 px-4 pt-2.5 pb-2 border-b border-black/15 overflow-x-auto no-scrollbar">
+                <button type="button" id="caTabBtn_balance" onclick="switchChemAssistantTab('balance')" class="help-tab-btn active">⚖️ Cân Bằng PTHH</button>
+                <button type="button" id="caTabBtn_analyze" onclick="switchChemAssistantTab('analyze')" class="help-tab-btn">🧪 Tính M, k, %</button>
+                <button type="button" id="caTabBtn_colors" onclick="switchChemAssistantTab('colors')" class="help-tab-btn">🌈 Màu Kết Tủa &amp; pH</button>
+                <button type="button" id="caTabBtn_alpha" onclick="switchChemAssistantTab('alpha')" class="help-tab-btn">⚡ Dãy Điện Hóa α</button>
+                <button type="button" id="caTabBtn_smiles" onclick="switchChemAssistantTab('smiles')" class="help-tab-btn">🧬 Tên / SMILES → Hình</button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-4 space-y-3.5 text-xs">
+                <!-- TAB 1: CÂN BẰNG PTHH -->
+                <div id="caPanel_balance" class="space-y-3">
+                    <div class="flex gap-2">
+                        <input id="caBalanceInput" type="text" onkeydown="if(event.key==='Enter') runEquationBalancerUI()" placeholder="VD: KMnO4 + FeSO4 + H2SO4 -> Fe2(SO4)3 + MnSO4 + K2SO4 + H2O" class="flex-1 h-10 px-3 rounded-xl bg-black/25 border border-slate-700 text-xs text-white outline-none focus:border-emerald-400" />
+                        <button type="button" onclick="runEquationBalancerUI()" class="h-10 px-4 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-xs shrink-0">⚖️ Cân bằng</button>
+                    </div>
+                    <div class="flex flex-wrap gap-1.5 text-[10.5px]">
+                        <button type="button" onclick="runEquationBalancerUI('FeS2 + O2 -> Fe2O3 + SO2')" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-sky-300 font-bold">FeS2 + O2</button>
+                        <button type="button" onclick="runEquationBalancerUI('Cu + HNO3 -> Cu(NO3)2 + NO + H2O')" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-sky-300 font-bold">Cu + HNO3 (loãng)</button>
+                        <button type="button" onclick="runEquationBalancerUI('KMnO4 + FeSO4 + H2SO4 -> Fe2(SO4)3 + MnSO4 + K2SO4 + H2O')" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-sky-300 font-bold">KMnO4 + FeSO4</button>
+                        <button type="button" onclick="runEquationBalancerUI('Fe3O4 + HNO3 -> Fe(NO3)3 + NO + H2O')" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-sky-300 font-bold">Fe3O4 + HNO3</button>
+                    </div>
+                    <div id="caBalanceResultBox"></div>
+                </div>
+
+                <!-- TAB 2: PHÂN TÍCH CTPT & QUÉT PHÂN TỬ TRÊN GIẤY -->
+                <div id="caPanel_analyze" class="hidden space-y-3.5">
+                    <div class="flex gap-2">
+                        <input id="caFormulaInput" type="text" onkeydown="if(event.key==='Enter') runFormulaAnalyzerUI()" placeholder="Nhập công thức (VD: C8H8O2, C6H5NO2, Fe2(SO4)3, CuSO4.5H2O)" class="flex-1 h-10 px-3 rounded-xl bg-black/25 border border-slate-700 text-xs text-white outline-none focus:border-sky-400" />
+                        <button type="button" onclick="runFormulaAnalyzerUI()" class="h-10 px-4 rounded-xl bg-sky-400 hover:bg-sky-300 text-slate-950 font-black text-xs shrink-0">🧪 Phân tích</button>
+                    </div>
+                    <div class="flex flex-wrap gap-1.5 text-[10.5px]">
+                        <button type="button" onclick="runFormulaAnalyzerUI('C8H8O2')" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-sky-300 font-bold">C8H8O2</button>
+                        <button type="button" onclick="runFormulaAnalyzerUI('C6H12O6')" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-sky-300 font-bold">Glucozơ</button>
+                        <button type="button" onclick="runFormulaAnalyzerUI('C9H8O4')" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-sky-300 font-bold">Aspirin</button>
+                        <button type="button" onclick="runFormulaAnalyzerUI('CuSO4.5H2O')" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-sky-300 font-bold">CuSO4·5H2O</button>
+                    </div>
+                    <div id="caFormulaResultBox"></div>
+                    <div class="pt-2 border-t border-black/15 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="font-extrabold text-[11.5px] text-emerald-300">🔬 Phân tử đang vẽ trên trang hiện tại</span>
+                            <button type="button" onclick="renderPageMoleculeScanResults()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[10.5px] font-bold text-sky-300">🔄 Quét lại</button>
+                        </div>
+                        <div id="caPageScanBox" class="space-y-1.5"></div>
+                    </div>
+                </div>
+
+                <!-- TAB 3: MÀU KẾT TỦA, DUNG DỊCH, NGỌN LỬA & pH -->
+                <div id="caPanel_colors" class="hidden space-y-3">
+                    <div class="flex flex-wrap items-center gap-1.5">
+                        <input type="search" oninput="setChemColorFilter(undefined, this.value)" placeholder="Tìm chất hoặc màu (VD: Fe(OH)3, tím, vàng, AgI)..." class="flex-1 min-w-[180px] h-8 px-3 rounded-lg bg-black/25 border border-slate-700 text-xs text-white outline-none" />
+                        <button type="button" id="caColCat_all" onclick="setChemColorFilter('all')" class="chip-btn text-[10.5px] active">Tất cả</button>
+                        <button type="button" id="caColCat_kt" onclick="setChemColorFilter('kt')" class="chip-btn text-[10.5px]">Kết tủa</button>
+                        <button type="button" id="caColCat_dd" onclick="setChemColorFilter('dd')" class="chip-btn text-[10.5px]">Dung dịch</button>
+                        <button type="button" id="caColCat_fl" onclick="setChemColorFilter('fl')" class="chip-btn text-[10.5px]">Ngọn lửa</button>
+                        <button type="button" id="caColCat_ph" onclick="setChemColorFilter('ph')" class="chip-btn text-[10.5px]">Chỉ thị pH</button>
+                    </div>
+                    <div class="text-[10.5px] text-slate-400">💡 Bấm vào bất kỳ ô màu nào để thả thẻ màu trực tiếp ra giấy A4!</div>
+                    <div id="caColorsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[46vh] overflow-y-auto pr-1"></div>
+                </div>
+
+                <!-- TAB 4: DÃY ĐIỆN HÓA & QUY TẮC ALPHA -->
+                <div id="caPanel_alpha" class="hidden space-y-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <div>
+                            <div class="text-[11px] font-bold text-slate-300 mb-1">Cặp oxi hóa – khử 1</div>
+                            <select id="caAlphaSelA" onchange="renderAlphaRulePanel()" class="w-full h-9 px-2.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white outline-none"></select>
+                        </div>
+                        <div>
+                            <div class="text-[11px] font-bold text-slate-300 mb-1">Cặp oxi hóa – khử 2</div>
+                            <select id="caAlphaSelB" onchange="renderAlphaRulePanel()" class="w-full h-9 px-2.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white outline-none"></select>
+                        </div>
+                    </div>
+                    <div id="caAlphaResultBox"></div>
+                </div>
+
+                <!-- TAB 5: TẠO PHÂN TỬ VECTOR TỪ TÊN / SMILES -->
+                <div id="caPanel_smiles" class="hidden space-y-3">
+                    <div class="flex gap-2">
+                        <input id="caSmilesInput" type="text" onkeydown="if(event.key==='Enter') runSmilesInsertUI()" placeholder="Nhập tên (benzene, phenol, ethanol) hoặc SMILES (CC(=O)O, C=CC=C)..." class="flex-1 h-10 px-3 rounded-xl bg-black/25 border border-slate-700 text-xs text-white outline-none focus:border-sky-400" />
+                        <button type="button" onclick="runSmilesInsertUI()" class="h-10 px-4 rounded-xl bg-sky-400 hover:bg-sky-300 text-slate-950 font-black text-xs shrink-0">🧬 Vẽ ra giấy</button>
+                    </div>
+                    <div class="text-[11px] font-bold text-slate-300">Hoặc chọn nhanh phân tử hữu cơ phổ biến (vẽ thành đối tượng vector sửa được):</div>
+                    <div id="caSmilesPresetsGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL MỤC LỤC & ĐÁNH DẤU TRANG (BOOKMARKS) -->
+    <div id="bookmarksModal" onclick="closeBookmarksModal()" class="hidden fixed inset-0 bg-black/75 z-[962] flex items-center justify-center p-3 sm:p-4">
+        <div onclick="event.stopPropagation()" class="help-modal-card w-full max-w-md max-h-[85vh] flex flex-col overflow-hidden">
+            <div class="flex items-center justify-between px-4 py-3 border-b border-black/15">
+                <div class="font-extrabold text-sm" style="color:var(--text-main);">🔖 Mục Lục &amp; Đánh Dấu Trang</div>
+                <button onclick="closeBookmarksModal()" class="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold" style="background:rgba(148,163,184,0.16);color:var(--text-main);">✕</button>
+            </div>
+            <div class="p-4 space-y-3 text-xs overflow-y-auto">
+                <div id="bookmarkCurrentPageLbl" class="font-bold text-sky-300">Trang hiện tại: Trang 1/1</div>
+                <div class="flex gap-2">
+                    <input id="bookmarkPageTitleInput" type="text" onkeydown="if(event.key==='Enter') saveCurrentPageBookmark()" placeholder="VD: CĐ2: Kim loại, Câu hay sai..." class="flex-1 h-9 px-3 rounded-xl bg-black/25 border border-slate-700 text-xs text-white outline-none" />
+                    <button type="button" onclick="saveCurrentPageBookmark()" class="h-9 px-3.5 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-extrabold text-xs shrink-0">🔖 Lưu</button>
+                </div>
+                <div id="bookmarksListContainer" class="space-y-2 pt-1"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL FLASHCARD ÔN PHẢN ỨNG & CƠ CHẾ -->
+    <div id="flashcardsModal" onclick="closeFlashcardsModal()" class="hidden fixed inset-0 bg-black/80 z-[962] flex items-center justify-center p-3 sm:p-4">
+        <div onclick="event.stopPropagation()" class="help-modal-card w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="flex items-center justify-between px-4 py-3 border-b border-black/15">
                 <div>
-                    <div class="font-bold text-[11px] mb-1.5" style="color:var(--text-muted);">Màu hàng tiêu đề</div>
-                    <div class="grid grid-cols-4 gap-1.5">
-                        <button type="button" onclick="setInsertTableOpt('theme', 'slate')" id="tblThemeBtn_slate" class="chip-btn text-[11px] active">⬜ Xám nhẹ</button>
-                        <button type="button" onclick="setInsertTableOpt('theme', 'sky')" id="tblThemeBtn_sky" class="chip-btn text-[11px]">🟦 Xanh dương</button>
-                        <button type="button" onclick="setInsertTableOpt('theme', 'emerald')" id="tblThemeBtn_emerald" class="chip-btn text-[11px]">🟩 Xanh ngọc</button>
-                        <button type="button" onclick="setInsertTableOpt('theme', 'rose')" id="tblThemeBtn_rose" class="chip-btn text-[11px]">🩷 Hồng dịu</button>
+                    <div class="font-extrabold text-sm" style="color:var(--text-main);">🃏 Flashcard Ôn Phản Ứng &amp; Cơ Chế</div>
+                    <div id="fcProgressLbl" class="text-[11px] text-sky-300 font-bold">Thẻ 1/4</div>
+                </div>
+                <button onclick="closeFlashcardsModal()" class="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold" style="background:rgba(148,163,184,0.16);color:var(--text-main);">✕</button>
+            </div>
+            <div class="p-4 space-y-3.5 text-xs overflow-y-auto">
+                <button type="button" id="fcActiveCardBox" onclick="flipCurrentFlashcard()" class="w-full min-h-[145px] p-5 rounded-2xl bg-gradient-to-br from-slate-800/95 to-slate-900/95 border border-sky-400/40 hover:border-sky-300 shadow-xl flex flex-col items-center justify-center text-center transition"></button>
+                <div class="flex items-center justify-between gap-2 flex-wrap">
+                    <div class="flex gap-1.5">
+                        <button type="button" onclick="stepFlashcard(-1)" class="h-9 px-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-100 font-bold">◀ Trước</button>
+                        <button type="button" onclick="stepFlashcard(1)" class="h-9 px-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-100 font-bold">Sau ▶</button>
+                    </div>
+                    <div class="flex gap-1.5">
+                        <button type="button" id="fcMasteredBtn" onclick="toggleMasteredFlashcard()" class="chip-btn text-xs px-3">⬜ Đánh dấu đã thuộc</button>
+                        <button type="button" onclick="deleteCurrentFlashcard()" class="h-9 px-3 rounded-xl bg-rose-500/20 hover:bg-rose-500/35 text-rose-300 font-bold">🗑</button>
                     </div>
                 </div>
-                <div class="rounded-xl border border-black/15 bg-white/95 p-3 flex items-center justify-center">
-                    <img id="insertTablePreviewImg" alt="Xem trước bảng" class="max-w-full max-h-36 object-contain" />
+                <div class="pt-3 border-t border-black/15 space-y-2">
+                    <div class="font-extrabold text-[11.5px] text-slate-300">+ Thêm thẻ Flashcard mới</div>
+                    <input id="fcFrontInput" type="text" placeholder="Mặt trước (VD: Cu + HNO3 đặc → ?)" class="w-full h-9 px-3 rounded-xl bg-black/25 border border-slate-700 text-xs text-white outline-none" />
+                    <input id="fcBackInput" type="text" onkeydown="if(event.key==='Enter') addNewFlashcard()" placeholder="Mặt sau (VD: Cu(NO3)2 + 2NO2↑ nâu đỏ + 2H2O)" class="w-full h-9 px-3 rounded-xl bg-black/25 border border-slate-700 text-xs text-white outline-none" />
+                    <button type="button" onclick="addNewFlashcard()" class="w-full h-9 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-extrabold text-xs">+ Lưu vào bộ thẻ</button>
                 </div>
-                <div class="flex items-center justify-end gap-2 pt-1">
-                    <button type="button" onclick="closeInsertTableModal()" class="h-9 px-3.5 rounded-xl bg-black/20 hover:bg-black/30 text-xs font-bold" style="color:var(--text-muted);">Hủy</button>
-                    <button type="button" onclick="confirmInsertSummaryTable()" class="h-9 px-4 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 text-xs font-extrabold shadow-lg transition">✓ Chèn bảng ra giấy</button>
-                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ĐỒNG HỒ POMODORO & ĐẾM NGƯỢC THI MINI NỔI -->
+    <div id="studyTimerWidget" onclick="event.stopPropagation()" class="hidden fixed top-[98px] right-3 z-[180] px-3 py-2 rounded-2xl bg-slate-900/95 border border-sky-400/45 shadow-2xl text-xs text-white space-y-1.5" style="backdrop-filter:blur(10px);min-width:210px;">
+        <div class="flex items-center justify-between gap-2">
+            <span class="font-extrabold text-sky-300 text-[11px]">⏱️ ĐỒNG HỒ ÔN THI</span>
+            <button type="button" onclick="toggleStudyTimerWidget(false)" class="text-slate-400 hover:text-white font-bold text-xs">✕</button>
+        </div>
+        <div class="flex items-center justify-between gap-2">
+            <span id="studyTimerDisplay" class="font-mono font-black text-xl tracking-wider text-emerald-300">25:00</span>
+            <div class="flex gap-1">
+                <button type="button" id="studyTimerPlayBtn" onclick="toggleStudyTimerRun()" class="w-8 h-8 rounded-lg bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-xs">▶</button>
+                <button type="button" onclick="resetStudyTimer()" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs" title="Đặt lại">↺</button>
+            </div>
+        </div>
+        <div class="grid grid-cols-4 gap-1 text-[10px]">
+            <button type="button" onclick="setStudyTimerMinutes(25)" class="py-1 rounded-md bg-slate-800 hover:bg-sky-500/30 font-bold">25'</button>
+            <button type="button" onclick="setStudyTimerMinutes(50)" class="py-1 rounded-md bg-slate-800 hover:bg-sky-500/30 font-bold">50'</button>
+            <button type="button" onclick="setStudyTimerMinutes(90)" class="py-1 rounded-md bg-slate-800 hover:bg-sky-500/30 font-bold">90'</button>
+            <button type="button" onclick="setStudyTimerMinutes(180)" class="py-1 rounded-md bg-slate-800 hover:bg-sky-500/30 font-bold">180'</button>
+        </div>
+    </div>
+
+    <!-- THƯỚC KẺ ẢO TRÊN GIẤY (VIRTUAL RULER) -->
+    <div id="virtualRulerOverlay" onclick="event.stopPropagation()" class="hidden fixed z-[175] rounded-xl border-2 border-sky-400/70 shadow-2xl select-none" style="height:54px;background:rgba(15,23,42,0.72);backdrop-filter:blur(6px);touch-action:none;">
+        <div onpointerdown="startVirtualRulerDrag(event)" class="w-full h-full flex items-center justify-between px-3 cursor-grab active:cursor-grabbing text-[11px] font-bold text-sky-100" style="background-image:repeating-linear-gradient(90deg, rgba(125,211,252,0.55) 0 1px, transparent 1px 10px);background-size:100% 10px;background-repeat:no-repeat;background-position:top;">
+            <div class="flex items-center gap-1 pt-1.5">
+                <button type="button" onpointerdown="event.stopPropagation()" onclick="rotateVirtualRuler(-5, true)" class="px-1.5 py-0.5 rounded bg-slate-800/90 hover:bg-sky-500/40">−5°</button>
+                <span id="virtualRulerAngleLbl" class="px-1.5 py-0.5 rounded bg-sky-500/25 text-sky-300 font-extrabold">0°</span>
+                <button type="button" onpointerdown="event.stopPropagation()" onclick="rotateVirtualRuler(5, true)" class="px-1.5 py-0.5 rounded bg-slate-800/90 hover:bg-sky-500/40">+5°</button>
+                <button type="button" onpointerdown="event.stopPropagation()" onclick="rotateVirtualRuler(0, false)" class="px-1.5 py-0.5 rounded bg-slate-800/90 hover:bg-sky-500/40">0°</button>
+                <button type="button" onpointerdown="event.stopPropagation()" onclick="rotateVirtualRuler(45, false)" class="px-1.5 py-0.5 rounded bg-slate-800/90 hover:bg-sky-500/40">45°</button>
+                <button type="button" onpointerdown="event.stopPropagation()" onclick="rotateVirtualRuler(90, false)" class="px-1.5 py-0.5 rounded bg-slate-800/90 hover:bg-sky-500/40">90°</button>
+            </div>
+            <div class="flex items-center gap-1.5 pt-1.5">
+                <button type="button" onpointerdown="event.stopPropagation()" onclick="drawLineAlongVirtualRuler()" class="px-2.5 py-1 rounded-lg bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-extrabold text-[10.5px]">✏️ Kẻ thẳng</button>
+                <button type="button" onpointerdown="event.stopPropagation()" onclick="toggleVirtualRuler(false)" class="w-6 h-6 rounded-lg bg-rose-500/30 hover:bg-rose-500/50 text-rose-200 font-bold">✕</button>
             </div>
         </div>
     </div>
@@ -1569,7 +1814,7 @@
                     </div>
                     <div>
                         <div class="font-extrabold text-sm" style="color:var(--text-main);">Tải ChemNote Cho Windows</div>
-                        <div class="text-[11px]" style="color:var(--text-muted);">Phiên bản v15.15.2 chính thức · Tự động cập nhật &amp; Chạy offline</div>
+                        <div class="text-[11px]" style="color:var(--text-muted);">Phiên bản v15.16.0 chính thức · Tự động cập nhật &amp; Chạy offline</div>
                     </div>
                 </div>
                 <button onclick="closeWindowsDownloadModal()" class="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold hover:opacity-80" style="background:rgba(148,163,184,0.16);color:var(--text-main);" title="Đóng (Esc)">✕</button>
@@ -1578,7 +1823,7 @@
                 <!-- THÔNG TIN PHIÊN BẢN -->
                 <div class="p-3 rounded-xl bg-sky-500/10 border border-sky-400/30 flex items-center justify-between gap-2 flex-wrap">
                     <div>
-                        <div class="font-extrabold text-[12px] text-sky-300">ChemNote Desktop v15.15.2 (Windows 64-bit)</div>
+                        <div class="font-extrabold text-[12px] text-sky-300">ChemNote Desktop v15.16.0 (Windows 64-bit)</div>
                         <div class="text-[11px] text-slate-300">Tương thích hoàn toàn Windows 10, Windows 11</div>
                     </div>
                     <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-extrabold text-[10.5px]">✓ Miễn phí 100%</span>
@@ -1597,9 +1842,9 @@
                             </div>
                             <span class="text-[10px] text-slate-400 font-bold shrink-0">~104 MB</span>
                         </div>
-                        <a href="https://github.com/mjnh00bs20101-debug/chemnote-win/releases/download/v15.15.2/ChemNote-Setup-15.15.2-win-x64.exe" target="_blank" rel="noopener noreferrer" class="w-full h-10 px-4 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-xs flex items-center justify-center gap-2 shadow-lg transition">
+                        <a href="https://github.com/mjnh00bs20101-debug/chemnote-win/releases/download/v15.16.0/ChemNote-Setup-15.16.0-win-x64.exe" target="_blank" rel="noopener noreferrer" class="w-full h-10 px-4 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-xs flex items-center justify-center gap-2 shadow-lg transition">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                            <span>Tải Ngay ChemNote-Setup-15.15.2-win-x64.exe</span>
+                            <span>Tải Ngay ChemNote-Setup-15.16.0-win-x64.exe</span>
                         </a>
                     </div>
 
@@ -1612,9 +1857,9 @@
                             </div>
                             <span class="text-[10px] text-slate-400 font-bold shrink-0">~104 MB</span>
                         </div>
-                        <a href="https://github.com/mjnh00bs20101-debug/chemnote-win/releases/download/v15.15.2/ChemNote-Portable-15.15.2-win-x64.exe" target="_blank" rel="noopener noreferrer" class="w-full h-9 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-100 font-bold text-xs flex items-center justify-center gap-2 transition">
+                        <a href="https://github.com/mjnh00bs20101-debug/chemnote-win/releases/download/v15.16.0/ChemNote-Portable-15.16.0-win-x64.exe" target="_blank" rel="noopener noreferrer" class="w-full h-9 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-100 font-bold text-xs flex items-center justify-center gap-2 transition">
                             <svg class="w-4 h-4 text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                            <span>Tải ChemNote-Portable-15.15.2-win-x64.exe</span>
+                            <span>Tải ChemNote-Portable-15.16.0-win-x64.exe</span>
                         </a>
                     </div>
                 </div>
@@ -1705,11 +1950,12 @@
     <!-- KHUNG IN / XUẤT PDF ĐA TRANG (ẨN KHI XEM, HIỆN KHI PRINT PDF) -->
     <div id="printPdfSheetContainer" class="hidden"></div>
 
-    <!-- NẠP 4 MODULE JAVASCRIPT THEO THỨ TỰ -->
-    <script src="state-catalog.js?v=14"></script>
-    <script src="ui-hub.js?v=14"></script>
-    <script src="renderer.js?v=14"></script>
-    <script src="chem-engine.js?v=14"></script>
+    <!-- NẠP 5 MODULE JAVASCRIPT THEO THỨ TỰ -->
+    <script src="state-catalog.js?v=16"></script>
+    <script src="ui-hub.js?v=16"></script>
+    <script src="renderer.js?v=16"></script>
+    <script src="chem-engine.js?v=16"></script>
+    <script src="chem-studio-tools.js?v=16"></script>
     <script>
         if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.protocol === 'http:')) {
             window.addEventListener('load', () => {

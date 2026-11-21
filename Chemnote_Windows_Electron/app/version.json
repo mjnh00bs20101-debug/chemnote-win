@@ -1,11 +1,10 @@
 {
-  "version": "15.15.2",
-  "versionCode": 37,
+  "version": "15.16.0",
+  "versionCode": 38,
   "releasedAt": "2026-11-21",
-  "title": "v15.15.2 — Bút Máy Thanh–Đậm Chữ Đẹp (Kèm Thanh Chỉnh), Bỏ Tụt Đuôi Nét, Chèn Bảng Tóm Tắt & Gợi Ý iPad",
+  "title": "v15.16.0 — Siêu Cập Nhật ChemNote Studio: Trợ Lý Hóa Học 5-in-1, Băng Che Ôn Bài, Flashcard, Thước Ảo & Tách Nền Ảnh",
   "highlights": [
-    "Nâng cấp Bút máy chuẩn chữ viết tay thanh – đậm (nét kéo xuống đậm đầy mực, nét đưa lên thanh mảnh, đuôi nét tròn đều không bị bóp nhọn) kèm thanh trượt chỉnh Độ tương phản Thanh – Đậm",
-    "Thêm công cụ Chèn nhanh Bảng Tóm Tắt (2–4 cột, 2–5 hàng, 4 màu tiêu đề) trực tiếp lên giấy A4, tự do kéo giãn và viết vào ô",
-    "Thêm gợi ý thông minh 1 chạm cho iPad đời cũ / bút cảm ứng ngoài (tự ẩn hoàn toàn trên iPad Apple Pencil và PC)"
+    "Trợ Lý Hóa Học 100% Offline: Cân bằng PTHH tự động (Gauss-Jordan chính xác), Phân tích M/k/% & Quét phân tử đang vẽ, Tra cứu 34+ Màu kết tủa/dung dịch/ngọn lửa/pH, Dãy điện hóa & Quy tắc α, Tạo phân tử vector từ Tên/SMILES",
+    "Bộ công cụ Học tập & Studygram: Băng Che Ôn Bài (chạm hé mở), Thẻ Ghi Chú Ngoại Lệ/Mẹo Nhớ, Banner Tiêu Đề, Tách nền trắng ảnh đề bài, Flashcard lật 2 mặt, Mục lục trang, Thước kẻ ảo & Đồng hồ Pomodoro/Thi"
   ]
 }

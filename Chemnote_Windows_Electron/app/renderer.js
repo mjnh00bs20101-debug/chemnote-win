@@ -1584,6 +1584,11 @@ function drawPageContentOnContext(c, doc, page, isInteractiveActivePage, isAudie
         c.restore();
     });
 
+    // 8c. Băng che ôn bài (Study Tape / Active Recall)
+    if (typeof renderStudyTapesOnContext === 'function') {
+        renderStudyTapesOnContext(c, doc);
+    }
+
     // 9. Gizmo xoay/phóng vòng
     if (isInteractiveActivePage && !isAudienceClean && activeRingGizmo.active) {
         c.save();

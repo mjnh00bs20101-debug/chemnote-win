@@ -10,10 +10,10 @@ let activePenStyle = 'fountain';
 let penSmoothing = 0.50;
 let penOpacity = 1.0;
 const APP_CURRENT_VERSION = {
-    version: '15.15.2',
-    versionCode: 37,
+    version: '15.16.0',
+    versionCode: 38,
     releasedAt: '2026-11-21',
-    title: 'v15.15.2 — Bút Máy Thanh–Đậm Chữ Đẹp, Chèn Bảng Tóm Tắt & Gợi Ý iPad'
+    title: 'v15.16.0 — Trợ Lý Hóa Học 5-in-1, Băng Che Ôn Bài, Flashcard, Thước Ảo & Tách Nền Ảnh'
 };
 const DEFAULT_FAVORITE_COLORS = ['#111827', '#0ea5e9', '#fb7185', '#10b981', '#fbbf24'];
 const DEFAULT_HIGHLIGHTER_COLORS = ['#fef08a', '#86efac', '#f9a8d4', '#7dd3fc', '#fdba74'];
