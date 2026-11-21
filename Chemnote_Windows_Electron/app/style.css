@@ -688,6 +688,91 @@ body[data-theme="lavender_milk"] .brand-note {
 .caret-tick { font-size: 9px; opacity: 0.75; margin-left: 1px; line-height: 1; }
 .v-sep { width: 1px; height: 22px; background: rgba(148,163,184,0.28); margin: 0 2px; flex-shrink: 0; }
 
+/* GIAO DIỆN PC STUDIO HUB (GỘP TOÀN BỘ CÔNG CỤ VÀO 1 THANH RỘNG, BỎ VIÊN THUỐC NỔI) */
+.pc-top-quick-ref-bar {
+    display: inline-flex; align-items: center; gap: 5px; margin-right: 4px; flex-shrink: 0;
+}
+.pc-top-ref-btn {
+    height: 30px; padding: 0 10px; border-radius: 8px;
+    border: 1px solid var(--border-chip); background: rgba(15,23,42,0.45);
+    color: var(--text-main); font-size: 11px; font-weight: 700;
+    display: inline-flex; align-items: center; gap: 4px; cursor: pointer;
+    white-space: nowrap; transition: all 0.15s; flex-shrink: 0;
+}
+.pc-top-ref-btn:hover {
+    background: var(--accent-soft); border-color: var(--accent); color: var(--text-main);
+    box-shadow: 0 0 8px var(--accent-glow);
+}
+body[data-theme="pearl_light"] .pc-top-ref-btn,
+body[data-theme="sakura_cute"] .pc-top-ref-btn,
+body[data-theme="mint_cream"] .pc-top-ref-btn,
+body[data-theme="lavender_milk"] .pc-top-ref-btn {
+    background: rgba(255,255,255,0.82);
+    color: var(--text-main);
+}
+.pc-hub-pen-dock {
+    display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0;
+}
+.pc-hub-group-sep {
+    width: 1.5px; height: 26px; border-radius: 2px;
+    background: rgba(148,163,184,0.38); margin: 0 6px; flex-shrink: 0;
+}
+body.pc-desktop-hub #penSubtoolbarRow {
+    display: none !important;
+}
+body.pc-desktop-hub .gn-navy-toolbar {
+    height: 48px; padding: 0 10px; gap: 6px;
+}
+body.pc-desktop-hub #navyToolbarItemsRow {
+    justify-content: safe center; gap: 3px;
+}
+body.pc-desktop-hub .pc-hub-pen-dock .gn-undo-cluster {
+    background: rgba(15,23,42,0.34); border: 1px solid rgba(148,163,184,0.24);
+    border-radius: 10px; padding: 2px 4px; box-shadow: none; gap: 2px;
+}
+body.pc-desktop-hub .pc-hub-pen-dock .gn-sub-pen {
+    width: 34px; height: 34px; border-radius: 9px; color: var(--text-on-navy);
+}
+body.pc-desktop-hub .pc-hub-pen-dock .gn-sub-pen:hover {
+    background: rgba(255,255,255,0.10); color: #ffffff;
+}
+body.pc-desktop-hub .pc-hub-pen-dock .gn-sub-pen.active {
+    color: #ffffff; background: var(--accent-soft); border-color: var(--accent);
+    box-shadow: 0 0 9px var(--accent-glow);
+}
+body.pc-desktop-hub .pc-hub-pen-dock .v-divider {
+    height: 22px; background: rgba(148,163,184,0.30); margin: 0 4px;
+}
+body.pc-desktop-hub .pc-hub-pen-dock .stroke-slot {
+    width: 28px; height: 28px; border-radius: 7px; color: var(--text-on-navy);
+}
+body.pc-desktop-hub .pc-hub-pen-dock .stroke-line {
+    background: var(--text-on-navy);
+}
+body.pc-desktop-hub .pc-hub-pen-dock .color-well {
+    width: 22px; height: 22px;
+}
+body.pc-desktop-hub .gn-main-tool {
+    height: 36px; min-width: 38px; padding: 0 8px;
+}
+body.pc-desktop-hub[data-theme="pearl_light"] .pc-hub-pen-dock .gn-undo-cluster,
+body.pc-desktop-hub[data-theme="sakura_cute"] .pc-hub-pen-dock .gn-undo-cluster,
+body.pc-desktop-hub[data-theme="mint_cream"] .pc-hub-pen-dock .gn-undo-cluster,
+body.pc-desktop-hub[data-theme="lavender_milk"] .pc-hub-pen-dock .gn-undo-cluster {
+    background: rgba(15,23,42,0.08);
+    border-color: rgba(15,23,42,0.14);
+}
+body.pc-desktop-hub[data-theme="pearl_light"] .pc-hub-pen-dock .gn-sub-pen:hover,
+body.pc-desktop-hub[data-theme="sakura_cute"] .pc-hub-pen-dock .gn-sub-pen:hover,
+body.pc-desktop-hub[data-theme="mint_cream"] .pc-hub-pen-dock .gn-sub-pen:hover,
+body.pc-desktop-hub[data-theme="lavender_milk"] .pc-hub-pen-dock .gn-sub-pen:hover,
+body.pc-desktop-hub[data-theme="pearl_light"] .pc-hub-pen-dock .gn-sub-pen.active,
+body.pc-desktop-hub[data-theme="sakura_cute"] .pc-hub-pen-dock .gn-sub-pen.active,
+body.pc-desktop-hub[data-theme="mint_cream"] .pc-hub-pen-dock .gn-sub-pen.active,
+body.pc-desktop-hub[data-theme="lavender_milk"] .pc-hub-pen-dock .gn-sub-pen.active {
+    color: var(--text-on-navy);
+}
+
 /* Thanh viên thuốc nhóm thế căn giữa chuẩn */
 .recent-groups-capsule {
     display: inline-flex; align-items: center; height: 34px; padding: 0 7px;
@@ -709,16 +794,23 @@ body[data-theme="lavender_milk"] .brand-note {
     position: relative; background: var(--bg-subbar); border-bottom: 1px solid var(--border-subtle); z-index: 50;
 }
 .gn-subtoolbar-wrap.pen-row-collapsed {
-    height: 0; min-height: 0; border-bottom: none; overflow: visible; padding: 0;
+    height: 0; min-height: 0; border-bottom: none; overflow: visible; padding: 0; z-index: 96;
 }
 .gn-pill-widget {
     display: inline-flex; align-items: center; gap: 8px; z-index: 95;
     transform-origin: center center; transition: box-shadow 0.15s;
 }
-.gn-pill-widget.is-floating { position: fixed; z-index: 96; }
+.gn-pill-widget.is-floating {
+    position: fixed; z-index: 96;
+    max-width: calc(100vw - 16px);
+}
+.gn-pill-widget.is-floating:not(.pill-vertical) .gn-pill-bar {
+    max-width: calc(100vw - 16px);
+    overflow-x: auto;
+}
 .gn-pill-widget.pill-vertical {
     flex-direction: column; gap: 6px;
-    max-height: calc(100vh - 76px - var(--safe-top)); overflow-y: auto;
+    max-height: calc(100dvh - 104px - var(--safe-top)); overflow-y: auto;
 }
 .gn-pill-widget.pill-vertical .gn-undo-cluster {
     flex-direction: row; padding: 4px 6px; border-radius: 16px;

@@ -41,6 +41,11 @@
         </div>
 
         <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar min-w-0">
+            <div id="pcTopQuickRefBar" class="pc-top-quick-ref-bar hidden">
+                <button onclick="openNameReactionsHubModal()" class="pc-top-ref-btn" title="Mở nhanh Kho 185 Name Reactions">📚 185 Phản ứng</button>
+                <button onclick="openReagentsHubModal()" class="pc-top-ref-btn" title="Mở nhanh Sổ Tay 331 Tác Nhân (Chu Văn Phòng)">🧪 331 Tác nhân</button>
+                <button onclick="openPeriodicHubModal()" class="pc-top-ref-btn" title="Mở nhanh Bảng Tuần Hoàn & Tính Phân tử khối M">⚛ BTH</button>
+            </div>
             <button onclick="openSupportCommunityModal('all')" id="supportCommunityTopBtn" class="top-icon-btn support-pill-btn" title="Ủng hộ ChemNotes nếu thấy hay & Nhóm Zalo Cộng đồng">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
                 <span>Ủng hộ &amp; Nhóm</span>
@@ -64,9 +69,11 @@
         </div>
     </header>
 
-    <!-- HÀNG 2: THANH XANH NAVY CHEMDRAW -->
+    <!-- HÀNG 2: THANH XANH NAVY CHEMDRAW (VÀ HUB GỘP 1 THANH TRÊN PC) -->
     <nav class="gn-navy-toolbar" onclick="event.stopPropagation()">
         <div id="navyToolbarItemsRow" class="flex items-center gap-1 overflow-x-auto no-scrollbar flex-1 justify-center">
+            <div id="pcHubPenDock" class="pc-hub-pen-dock hidden"></div>
+            <div id="pcHubMidSep" class="pc-hub-group-sep hidden"></div>
             <button data-navy-item="page_grid" id="nt-item-page_grid" onclick="openPageGridModal()" class="gn-main-tool" title="Quản lý trang">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
             </button>
@@ -209,6 +216,10 @@
             <button onclick="toggleNavyToolbarConfigPopover(event)" id="menuToolbarConfigBtn" class="settings-menu-row">
                 <span>🛠 Tùy chỉnh Hub &amp; Viên thuốc</span>
                 <span class="settings-row-sub">Ẩn / Đổi chỗ</span>
+            </button>
+            <button onclick="closeAllPopovers(); togglePcDesktopHubMode();" id="menuPcHubModeBtn" class="settings-menu-row">
+                <span>🖥 Giao diện Hub</span>
+                <span id="menuPcHubModeBadge" class="settings-row-sub text-sky-300 font-extrabold">Viên thuốc</span>
             </button>
             <button onclick="closeAllPopovers(); openHelpHotkeysModal('touch');" id="ipadTouchSettingsBtn" class="settings-menu-row">
                 <span>✋ Cảm ứng &amp; Chuột</span>
@@ -1292,10 +1303,10 @@
                             <div class="text-[11px] text-slate-300 mt-0.5">Dành cho máy tính Windows 10 &amp; 11 (64-bit). Đã tích hợp tính năng tự động cập nhật và chạy mượt mà không cần mạng.</div>
                         </div>
                         <div class="flex items-center gap-2 flex-wrap">
-                            <a href="https://github.com/mjnh00bs20101-debug/chemnote-win/releases/download/v15.15.0/ChemNote-Setup-15.15.0-win-x64.exe" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-[11px] shadow-md flex items-center gap-1 transition">
+                            <a href="https://github.com/mjnh00bs20101-debug/chemnote-win/releases/download/v15.15.1/ChemNote-Setup-15.15.1-win-x64.exe" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-[11px] shadow-md flex items-center gap-1 transition">
                                 <span>⬇ Tải Bản Setup (.exe)</span>
                             </a>
-                            <a href="https://github.com/mjnh00bs20101-debug/chemnote-win/releases/download/v15.15.0/ChemNote-Portable-15.15.0-win-x64.exe" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 font-bold text-[11px] flex items-center gap-1 transition">
+                            <a href="https://github.com/mjnh00bs20101-debug/chemnote-win/releases/download/v15.15.1/ChemNote-Portable-15.15.1-win-x64.exe" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 font-bold text-[11px] flex items-center gap-1 transition">
                                 <span>⚡ Bản Portable</span>
                             </a>
                             <a href="https://github.com/mjnh00bs20101-debug/chemnote-win/releases/latest" target="_blank" rel="noopener noreferrer" class="px-2 py-1.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/35 text-sky-300 font-bold text-[11px] transition" title="Xem trên GitHub Releases">
@@ -1484,7 +1495,7 @@
                     </div>
                     <div>
                         <div class="font-extrabold text-sm" style="color:var(--text-main);">Tải ChemNote Cho Windows</div>
-                        <div class="text-[11px]" style="color:var(--text-muted);">Phiên bản v15.15.0 chính thức · Tự động cập nhật &amp; Chạy offline</div>
+                        <div class="text-[11px]" style="color:var(--text-muted);">Phiên bản v15.15.1 chính thức · Tự động cập nhật &amp; Chạy offline</div>
                     </div>
                 </div>
                 <button onclick="closeWindowsDownloadModal()" class="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold hover:opacity-80" style="background:rgba(148,163,184,0.16);color:var(--text-main);" title="Đóng (Esc)">✕</button>
@@ -1493,7 +1504,7 @@
                 <!-- THÔNG TIN PHIÊN BẢN -->
                 <div class="p-3 rounded-xl bg-sky-500/10 border border-sky-400/30 flex items-center justify-between gap-2 flex-wrap">
                     <div>
-                        <div class="font-extrabold text-[12px] text-sky-300">ChemNote Desktop v15.15.0 (Windows 64-bit)</div>
+                        <div class="font-extrabold text-[12px] text-sky-300">ChemNote Desktop v15.15.1 (Windows 64-bit)</div>
                         <div class="text-[11px] text-slate-300">Tương thích hoàn toàn Windows 10, Windows 11</div>
                     </div>
                     <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-extrabold text-[10.5px]">✓ Miễn phí 100%</span>
@@ -1512,9 +1523,9 @@
                             </div>
                             <span class="text-[10px] text-slate-400 font-bold shrink-0">~104 MB</span>
                         </div>
-                        <a href="https://github.com/mjnh00bs20101-debug/chemnote-win/releases/download/v15.15.0/ChemNote-Setup-15.15.0-win-x64.exe" target="_blank" rel="noopener noreferrer" class="w-full h-10 px-4 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-xs flex items-center justify-center gap-2 shadow-lg transition">
+                        <a href="https://github.com/mjnh00bs20101-debug/chemnote-win/releases/download/v15.15.1/ChemNote-Setup-15.15.1-win-x64.exe" target="_blank" rel="noopener noreferrer" class="w-full h-10 px-4 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-xs flex items-center justify-center gap-2 shadow-lg transition">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                            <span>Tải Ngay ChemNote-Setup-15.15.0-win-x64.exe</span>
+                            <span>Tải Ngay ChemNote-Setup-15.15.1-win-x64.exe</span>
                         </a>
                     </div>
 
@@ -1527,9 +1538,9 @@
                             </div>
                             <span class="text-[10px] text-slate-400 font-bold shrink-0">~104 MB</span>
                         </div>
-                        <a href="https://github.com/mjnh00bs20101-debug/chemnote-win/releases/download/v15.15.0/ChemNote-Portable-15.15.0-win-x64.exe" target="_blank" rel="noopener noreferrer" class="w-full h-9 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-100 font-bold text-xs flex items-center justify-center gap-2 transition">
+                        <a href="https://github.com/mjnh00bs20101-debug/chemnote-win/releases/download/v15.15.1/ChemNote-Portable-15.15.1-win-x64.exe" target="_blank" rel="noopener noreferrer" class="w-full h-9 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-100 font-bold text-xs flex items-center justify-center gap-2 transition">
                             <svg class="w-4 h-4 text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                            <span>Tải ChemNote-Portable-15.15.0-win-x64.exe</span>
+                            <span>Tải ChemNote-Portable-15.15.1-win-x64.exe</span>
                         </a>
                     </div>
                 </div>

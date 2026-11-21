@@ -484,7 +484,10 @@ function renderPenStyleGrid() {
     const box = document.getElementById('penStyleGrid');
     if (!box) return;
     box.innerHTML = PEN_STYLE_CATALOG.map(ps => `
-        <button onclick="pickPenStyle('${ps.id}')" title="${ps.title}" class="icon-only-chip ${activePenStyle === ps.id ? 'active' : ''}">${wrapSvgIcon(ps.svg)}</button>
+        <button onclick="pickPenStyle('${ps.id}')" title="${ps.title}" class="icon-only-chip flex-col gap-0.5 ${activePenStyle === ps.id ? 'active' : ''}" style="height:54px;padding:4px 3px;">
+            ${wrapSvgIcon(ps.svg)}
+            <span class="text-[9.5px] font-bold leading-none whitespace-nowrap">${ps.label || ''}</span>
+        </button>
     `).join('');
 }
 
@@ -2736,66 +2739,110 @@ function isPenPillItemVisible(cfg, itemId) {
     return Array.isArray(cfg.visibleItems) ? cfg.visibleItems.includes(itemId) : (cfg.visibleItems?.[itemId] !== false);
 }
 
+function isElectronDesktopApp() {
+    return !!(typeof window !== 'undefined' && window.chemnoteDesktop && window.chemnoteDesktop.isElectron);
+}
+
+function isPcDesktopHubActive() {
+    const mode = (typeof appLibrary !== 'undefined' && appLibrary) ? appLibrary.pcHubMode : null;
+    if (mode === 'pc') return true;
+    if (mode === 'pill') return false;
+    return isElectronDesktopApp();
+}
+
+function applyPcDesktopHubMode() {
+    const pcOn = isPcDesktopHubActive();
+    const isExe = isElectronDesktopApp();
+    if (typeof document === 'undefined') return pcOn;
+
+    document.body?.classList?.toggle('pc-desktop-hub', pcOn);
+
+    const dock = document.getElementById('pcHubPenDock');
+    const midSep = document.getElementById('pcHubMidSep');
+    const topQuickRef = document.getElementById('pcTopQuickRefBar');
+    const pillWidget = document.getElementById('penPillWidget');
+    const pillBar = document.getElementById('penPillBar');
+    const endDivider = document.getElementById('penPillEndDivider');
+
+    const undoCluster = document.getElementById('pp-item-undo_redo');
+    const penToolsIds = ['sp-ballpoint', 'sp-highlighter', 'sp-eraser', 'sp-lasso', 'pp-item-stroke_slots', 'pp-item-color_wells'];
+
+    if (pcOn && dock) {
+        if (undoCluster && undoCluster.parentElement !== dock) {
+            dock.appendChild(undoCluster);
+        }
+        penToolsIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.classList.remove('hidden');
+                if (el.parentElement !== dock) dock.appendChild(el);
+            }
+        });
+        dock.classList.remove('hidden');
+        midSep?.classList?.remove('hidden');
+        topQuickRef?.classList?.remove('hidden');
+    } else if (pillWidget && pillBar) {
+        if (undoCluster && undoCluster.parentElement !== pillWidget) {
+            pillWidget.insertBefore(undoCluster, pillBar);
+        }
+        penToolsIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (el && el.parentElement !== pillBar) {
+                if (endDivider && endDivider.parentElement === pillBar) {
+                    pillBar.insertBefore(el, endDivider);
+                } else {
+                    pillBar.appendChild(el);
+                }
+            }
+        });
+        dock?.classList?.add('hidden');
+        midSep?.classList?.add('hidden');
+        topQuickRef?.classList?.add('hidden');
+    }
+
+    const modeBadge = document.getElementById('menuPcHubModeBadge');
+    if (modeBadge) {
+        modeBadge.textContent = pcOn ? 'PC Gộp 1 thanh' : 'iPad Viên thuốc';
+    }
+    // Trên bản .exe không cần hiện nút tải .exe nữa
+    ['settingsDownloadWinBtn', 'hubDownloadWinBtn'].forEach(id => {
+        document.getElementById(id)?.classList?.toggle('hidden', isExe);
+    });
+    return pcOn;
+}
+
+function togglePcDesktopHubMode() {
+    if (typeof appLibrary === 'undefined' || !appLibrary) return;
+    const nextPc = !isPcDesktopHubActive();
+    appLibrary.pcHubMode = nextPc ? 'pc' : 'pill';
+    persistLibrary();
+    applyPenPillLayout();
+    if (typeof resizeCanvas === 'function') resizeCanvas();
+    if (typeof showGestureToast === 'function') {
+        showGestureToast(nextPc
+            ? '🖥 Đã chuyển sang Hub PC (Gộp 1 thanh gọn rộng, bỏ viên thuốc nổi)'
+            : '📱 Đã chuyển về Hub iPad (Có viên thuốc bút nổi)');
+    }
+}
+window.togglePcDesktopHubMode = togglePcDesktopHubMode;
+
 function applyPenPillLayout() {
     const cfg = ensurePenPillConfig();
     const row = document.getElementById('penSubtoolbarRow');
     const ws = document.getElementById('workspaceContainer');
     const pill = document.getElementById('penPillWidget');
-    const isFloating = cfg.dock !== 'top_center';
+    const pcHubOn = applyPcDesktopHubMode();
+    const isFloating = pcHubOn || cfg.dock !== 'top_center';
     const wasCollapsed = row ? row.classList.contains('pen-row-collapsed') : false;
 
     if (row) row.classList.toggle('pen-row-collapsed', isFloating);
     if (ws) ws.classList.toggle('pen-row-collapsed', isFloating);
 
-    if (pill) {
-        pill.classList.toggle('is-floating', isFloating);
-        pill.classList.toggle('pill-vertical', !!cfg.vertical);
-
-        if (!isFloating) {
-            pill.style.left = '';
-            pill.style.top = '';
-            pill.style.right = '';
-            pill.style.bottom = '';
-            pill.style.transformOrigin = 'center center';
-            pill.style.transform = Math.abs(cfg.scale - 1) > 0.001 ? `scale(${cfg.scale})` : '';
-        } else {
-            const vw = (typeof window !== 'undefined' && window.innerWidth) || 1200;
-            const vh = (typeof window !== 'undefined' && window.innerHeight) || 800;
-            const scaleCss = Math.abs(cfg.scale - 1) > 0.001 ? `scale(${cfg.scale})` : '';
-            const dockMap = {
-                top_left:      { left: '12px', top: '96px', right: '', bottom: '', ox: 'left', oy: 'top', tx: '' },
-                top_right:     { left: '', top: '96px', right: '12px', bottom: '', ox: 'right', oy: 'top', tx: '' },
-                bottom_center: { left: '50%', top: '', right: '', bottom: '14px', ox: 'center', oy: 'bottom', tx: 'translateX(-50%)' },
-                bottom_left:   { left: '12px', top: '', right: '', bottom: '14px', ox: 'left', oy: 'bottom', tx: '' },
-                bottom_right:  { left: '', top: '', right: '12px', bottom: '14px', ox: 'right', oy: 'bottom', tx: '' },
-                left_edge:     { left: '10px', top: '50%', right: '', bottom: '', ox: 'left', oy: 'center', tx: 'translateY(-50%)' },
-                right_edge:    { left: '', top: '50%', right: '10px', bottom: '', ox: 'right', oy: 'center', tx: 'translateY(-50%)' }
-            };
-            const spec = dockMap[cfg.dock];
-            if (spec) {
-                pill.style.left = spec.left;
-                pill.style.top = spec.top;
-                pill.style.right = spec.right;
-                pill.style.bottom = spec.bottom;
-                pill.style.transformOrigin = `${spec.ox} ${spec.oy}`;
-                pill.style.transform = [spec.tx, scaleCss].filter(Boolean).join(' ');
-            } else {
-                const safeTop = getSafeTopInsetPx();
-                const box = getPillBoxSize(pill, cfg, 'pen');
-                const rawX = (cfg.x !== null && Number.isFinite(Number(cfg.x))) ? Number(cfg.x) : 24;
-                const rawY = (cfg.y !== null && Number.isFinite(Number(cfg.y))) ? Number(cfg.y) : (108 + safeTop);
-                const cx = Math.max(6, Math.min(Math.max(6, vw - box.w - 6), rawX));
-                const cy = Math.max(48 + safeTop, Math.min(Math.max(48 + safeTop, vh - box.h - 8), rawY));
-                cfg.x = cx;
-                cfg.y = cy;
-                pill.style.left = `${cx}px`;
-                pill.style.top = `${cy}px`;
-                pill.style.right = '';
-                pill.style.bottom = '';
-                pill.style.transformOrigin = 'left top';
-                pill.style.transform = scaleCss;
-            }
+    if (pcHubOn) {
+        if (wasCollapsed !== isFloating && typeof resizeCanvas === 'function') {
+            resizeCanvas();
         }
+        return;
     }
 
     const bar = document.getElementById('penPillBar');
@@ -2817,6 +2864,58 @@ function applyPenPillLayout() {
             const visible = isPenPillItemVisible(cfg, item.id);
             const node = document.getElementById('pp-item-' + item.id) || document.getElementById('sp-' + item.id);
             if (node) node.classList.toggle('hidden', !visible);
+        }
+    }
+
+    if (pill) {
+        pill.classList.toggle('is-floating', isFloating);
+        pill.classList.toggle('pill-vertical', !!cfg.vertical);
+
+        if (!isFloating) {
+            pill.style.left = '';
+            pill.style.top = '';
+            pill.style.right = '';
+            pill.style.bottom = '';
+            pill.style.transformOrigin = 'center center';
+            pill.style.transform = Math.abs(cfg.scale - 1) > 0.001 ? `scale(${cfg.scale})` : '';
+        } else {
+            const bounds = getPenPillViewportBounds(pill, cfg, 'pen');
+            const scaleCss = Math.abs(cfg.scale - 1) > 0.001 ? `scale(${cfg.scale})` : '';
+            const midWorkspaceY = Math.round((bounds.minY + bounds.vh - bounds.padBottom) * 0.5);
+            const topDockY = Math.max(96, bounds.minY);
+            const dockMap = {
+                top_left:      { left: `${bounds.minX + 4}px`, top: `${topDockY}px`, right: '', bottom: '', ox: 'left', oy: 'top', tx: '' },
+                top_right:     { left: '', top: `${topDockY}px`, right: `${bounds.padX + 4}px`, bottom: '', ox: 'right', oy: 'top', tx: '' },
+                bottom_center: { left: '50%', top: '', right: '', bottom: `${bounds.padBottom + 4}px`, ox: 'center', oy: 'bottom', tx: 'translateX(-50%)' },
+                bottom_left:   { left: `${bounds.minX + 4}px`, top: '', right: '', bottom: `${bounds.padBottom + 4}px`, ox: 'left', oy: 'bottom', tx: '' },
+                bottom_right:  { left: '', top: '', right: `${bounds.padX + 4}px`, bottom: `${bounds.padBottom + 4}px`, ox: 'right', oy: 'bottom', tx: '' },
+                left_edge:     { left: `${bounds.minX + 2}px`, top: `${midWorkspaceY}px`, right: '', bottom: '', ox: 'left', oy: 'center', tx: 'translateY(-50%)' },
+                right_edge:    { left: '', top: `${midWorkspaceY}px`, right: `${bounds.padX + 2}px`, bottom: '', ox: 'right', oy: 'center', tx: 'translateY(-50%)' }
+            };
+            const spec = dockMap[cfg.dock];
+            if (spec) {
+                pill.style.left = spec.left;
+                pill.style.top = spec.top;
+                pill.style.right = spec.right;
+                pill.style.bottom = spec.bottom;
+                pill.style.transformOrigin = `${spec.ox} ${spec.oy}`;
+                pill.style.transform = [spec.tx, scaleCss].filter(Boolean).join(' ');
+                enforcePillDomBounds(pill, cfg);
+            } else {
+                const rawX = (cfg.x !== null && Number.isFinite(Number(cfg.x))) ? Number(cfg.x) : 24;
+                const rawY = (cfg.y !== null && Number.isFinite(Number(cfg.y))) ? Number(cfg.y) : (bounds.minY + 12);
+                const cx = Math.round(Math.max(bounds.minX, Math.min(bounds.maxX, rawX)));
+                const cy = Math.round(Math.max(bounds.minY, Math.min(bounds.maxY, rawY)));
+                cfg.x = cx;
+                cfg.y = cy;
+                pill.style.left = `${cx}px`;
+                pill.style.top = `${cy}px`;
+                pill.style.right = '';
+                pill.style.bottom = '';
+                pill.style.transformOrigin = 'left top';
+                pill.style.transform = scaleCss;
+                enforcePillDomBounds(pill, cfg);
+            }
         }
     }
 
@@ -3085,7 +3184,11 @@ function renderCustomChemPill() {
     document.getElementById('customChemPill')?.classList?.add('hidden');
 }
 
-/* --- KÉO DI CHUYỂN VIÊN THUỐC BẤT KỲ ĐÂU TRÊN MÀN HÌNH --- */
+/* --- KÉO DI CHUYỂN VIÊN THUỐC BẤT KỲ ĐÂU TRÊN MÀN HÌNH (CÓ BORDER CHẶN 4 CẠNH AN TOÀN) --- */
+const PEN_PILL_EDGE_PAD_X = 8;
+const PEN_PILL_EDGE_PAD_BOTTOM = 10;
+const PEN_PILL_HUB_CLEARANCE_Y = 8;
+
 function getSafeTopInsetPx() {
     if (typeof document === 'undefined') return 0;
     try {
@@ -3102,13 +3205,36 @@ function getSafeTopInsetPx() {
     return 0;
 }
 
+function getPenPillTopBoundaryPx() {
+    const safeTop = getSafeTopInsetPx();
+    const isFs = typeof document !== 'undefined' && !!document.body?.classList?.contains('fullscreen-focus-mode');
+    let hubBottom = (isFs ? 44 : 86) + safeTop;
+    if (typeof document !== 'undefined') {
+        const navy = document.querySelector('.gn-navy-toolbar');
+        const tabs = document.querySelector('.gn-top-tabs');
+        if (navy && typeof navy.getBoundingClientRect === 'function') {
+            const nr = navy.getBoundingClientRect();
+            if (nr && Number.isFinite(nr.bottom) && nr.height > 0) {
+                hubBottom = Math.max(hubBottom, Math.ceil(nr.bottom));
+            }
+        }
+        if (!isFs && tabs && typeof tabs.getBoundingClientRect === 'function') {
+            const tr = tabs.getBoundingClientRect();
+            if (tr && Number.isFinite(tr.bottom) && tr.height > 0) {
+                hubBottom = Math.max(hubBottom, Math.ceil(tr.bottom));
+            }
+        }
+    }
+    return hubBottom + PEN_PILL_HUB_CLEARANCE_Y;
+}
+
 function getPillBoxSize(pillEl, cfg, whichPill) {
     const scale = (cfg && Number.isFinite(Number(cfg.scale))) ? Number(cfg.scale) : 1;
     if (pillEl && typeof pillEl.offsetWidth === 'number' && pillEl.offsetWidth > 0 &&
         typeof pillEl.offsetHeight === 'number' && pillEl.offsetHeight > 0) {
         return {
-            w: Math.max(44, Math.round(pillEl.offsetWidth * scale)),
-            h: Math.max(40, Math.round(pillEl.offsetHeight * scale))
+            w: Math.max(44, Math.ceil(pillEl.offsetWidth * scale)),
+            h: Math.max(40, Math.ceil(pillEl.offsetHeight * scale))
         };
     }
     const isVert = !!(cfg && cfg.vertical);
@@ -3116,6 +3242,68 @@ function getPillBoxSize(pillEl, cfg, whichPill) {
         return isVert ? { w: Math.round(98 * scale), h: Math.round(280 * scale) } : { w: Math.round(360 * scale), h: Math.round(54 * scale) };
     }
     return isVert ? { w: Math.round(92 * scale), h: Math.round(250 * scale) } : { w: Math.round(320 * scale), h: Math.round(52 * scale) };
+}
+
+function getPenPillViewportBounds(pillEl, cfg, whichPill = 'pen') {
+    const vw = (typeof window !== 'undefined' && window.innerWidth) || 1200;
+    const vh = (typeof window !== 'undefined' && window.innerHeight) || 800;
+    const box = getPillBoxSize(pillEl, cfg, whichPill);
+    const minX = PEN_PILL_EDGE_PAD_X;
+    const maxX = Math.max(minX, vw - box.w - PEN_PILL_EDGE_PAD_X);
+    const minY = getPenPillTopBoundaryPx();
+    const maxY = Math.max(minY, vh - box.h - PEN_PILL_EDGE_PAD_BOTTOM);
+    return {
+        vw,
+        vh,
+        box,
+        padX: PEN_PILL_EDGE_PAD_X,
+        padBottom: PEN_PILL_EDGE_PAD_BOTTOM,
+        minX,
+        maxX,
+        minY,
+        maxY
+    };
+}
+
+function enforcePillDomBounds(pillEl, cfg) {
+    if (!pillEl || !pillEl.classList?.contains('is-floating')) return;
+    if (typeof pillEl.getBoundingClientRect !== 'function') return;
+    const rect = pillEl.getBoundingClientRect();
+    if (!rect || !(rect.width > 0 && rect.height > 0)) return;
+
+    const vw = (typeof window !== 'undefined' && window.innerWidth) || 1200;
+    const vh = (typeof window !== 'undefined' && window.innerHeight) || 800;
+    const minX = PEN_PILL_EDGE_PAD_X;
+    const maxRight = Math.max(minX + 40, vw - PEN_PILL_EDGE_PAD_X);
+    const minY = getPenPillTopBoundaryPx();
+    const maxBottom = Math.max(minY + 36, vh - PEN_PILL_EDGE_PAD_BOTTOM);
+
+    let shiftX = 0;
+    let shiftY = 0;
+    if (rect.right > maxRight) shiftX = maxRight - rect.right;
+    if (rect.left + shiftX < minX) shiftX = minX - rect.left;
+    if (rect.bottom > maxBottom) shiftY = maxBottom - rect.bottom;
+    if (rect.top + shiftY < minY) shiftY = minY - rect.top;
+
+    if (Math.abs(shiftX) <= 0.5 && Math.abs(shiftY) <= 0.5) return;
+
+    if (cfg && cfg.dock === 'free') {
+        const curX = Number.isFinite(Number(cfg.x)) ? Number(cfg.x) : rect.left;
+        const curY = Number.isFinite(Number(cfg.y)) ? Number(cfg.y) : rect.top;
+        cfg.x = Math.round(curX + shiftX);
+        cfg.y = Math.round(curY + shiftY);
+        pillEl.style.left = `${cfg.x}px`;
+        pillEl.style.top = `${cfg.y}px`;
+    } else {
+        const scale = (cfg && Number.isFinite(Number(cfg.scale))) ? Number(cfg.scale) : 1;
+        const scaleCss = Math.abs(scale - 1) > 0.001 ? `scale(${scale})` : '';
+        pillEl.style.left = `${Math.round(rect.left + shiftX)}px`;
+        pillEl.style.top = `${Math.round(rect.top + shiftY)}px`;
+        pillEl.style.right = '';
+        pillEl.style.bottom = '';
+        pillEl.style.transformOrigin = 'left top';
+        pillEl.style.transform = scaleCss;
+    }
 }
 
 function startPillDrag(whichPill, ev) {
@@ -3142,51 +3330,40 @@ function startPillDrag(whichPill, ev) {
     }
 
     const r1 = pillEl.getBoundingClientRect();
-    let box = getPillBoxSize(pillEl, cfg, whichPill);
+    let bounds = getPenPillViewportBounds(pillEl, cfg, whichPill);
     const dragPointerId = ev.pointerId;
     const startClientX = Number(ev.clientX) || 0;
     const startClientY = Number(ev.clientY) || 0;
-    const baseX = (cfg.x !== null && Number.isFinite(Number(cfg.x))) ? Number(cfg.x)
+    const initLeft = (cfg.x !== null && Number.isFinite(Number(cfg.x))) ? Number(cfg.x)
         : (Number.isFinite(parseFloat(pillEl.style.left)) ? parseFloat(pillEl.style.left) : r1.left);
-    const baseY = (cfg.y !== null && Number.isFinite(Number(cfg.y))) ? Number(cfg.y)
+    const initTop = (cfg.y !== null && Number.isFinite(Number(cfg.y))) ? Number(cfg.y)
         : (Number.isFinite(parseFloat(pillEl.style.top)) ? parseFloat(pillEl.style.top) : r1.top);
+    let grabOffsetX = startClientX - initLeft;
+    let grabOffsetY = startClientY - initTop;
 
     const onMove = (moveEv) => {
         if (dragPointerId !== undefined && moveEv.pointerId !== undefined && moveEv.pointerId !== dragPointerId) return;
-        const vw = (typeof window !== 'undefined' && window.innerWidth) || 1200;
-        const vh = (typeof window !== 'undefined' && window.innerHeight) || 800;
-        const safeTop = getSafeTopInsetPx();
-        const topBoundary = 48 + safeTop;
-        const curClientX = Number(moveEv.clientX) || 0;
-        const curClientY = Number(moveEv.clientY) || 0;
-        const dx = curClientX - startClientX;
-        const dy = curClientY - startClientY;
+        bounds = getPenPillViewportBounds(pillEl, cfg, whichPill);
+        const { vw, vh, minX, maxX, minY, maxY } = bounds;
+        const curClientX = Math.max(0, Math.min(vw, Number(moveEv.clientX) || 0));
+        const curClientY = Math.max(0, Math.min(vh, Number(moveEv.clientY) || 0));
 
-        let nx = Math.max(6, Math.min(Math.max(6, vw - box.w - 6), baseX + dx));
-        let ny = Math.max(topBoundary, Math.min(Math.max(topBoundary, vh - box.h - 8), baseY + dy));
+        let nx = Math.max(minX, Math.min(maxX, curClientX - grabOffsetX));
+        let ny = Math.max(minY, Math.min(maxY, curClientY - grabOffsetY));
 
-        const minSideDist = Math.min(
-            Math.max(0, nx),
-            Math.max(0, vw - (nx + box.w)),
-            Math.max(0, curClientX),
-            Math.max(0, vw - curClientX)
-        );
-        const minTopBottomDist = Math.min(
-            Math.max(0, ny - topBoundary),
-            Math.max(0, vh - (ny + box.h)),
-            Math.max(0, curClientY - topBoundary),
-            Math.max(0, vh - curClientY)
-        );
+        const cursorSideDist = Math.min(Math.max(0, curClientX), Math.max(0, vw - curClientX));
+        const cursorTopBottomDist = Math.min(Math.max(0, curClientY - minY), Math.max(0, vh - curClientY));
 
         let nextVertical = !!cfg.vertical;
-        if (minTopBottomDist <= 105 && minTopBottomDist <= minSideDist + 10) {
+        if (cursorTopBottomDist <= 56 && cursorSideDist > 76) {
             nextVertical = false;
-        } else if (minSideDist <= 115 && minSideDist + 10 < minTopBottomDist) {
+        } else if (cursorSideDist <= 64 && cursorTopBottomDist > 76) {
             nextVertical = true;
         }
 
         if (nextVertical !== !!cfg.vertical) {
             cfg.vertical = nextVertical;
+            cfg.orientation = cfg.vertical ? 'vertical' : 'horizontal';
             if (whichPill === 'pen') {
                 pillEl.classList.toggle('pill-vertical', !!cfg.vertical);
                 const orientLbl = document.getElementById('penPillOrientLbl');
@@ -3194,20 +3371,26 @@ function startPillDrag(whichPill, ev) {
             } else {
                 renderCustomChemPill();
             }
-            box = getPillBoxSize(pillEl, cfg, whichPill);
-            if (nextVertical && curClientX > vw * 0.5) {
-                nx = Math.max(6, vw - box.w - 8);
-            } else if (nextVertical && curClientX <= 125) {
-                nx = 8;
+            bounds = getPenPillViewportBounds(pillEl, cfg, whichPill);
+            const handleEl = pillEl.querySelector?.('.pill-drag-handle');
+            const pr = typeof pillEl.getBoundingClientRect === 'function' ? pillEl.getBoundingClientRect() : null;
+            const hr = (handleEl && typeof handleEl.getBoundingClientRect === 'function') ? handleEl.getBoundingClientRect() : null;
+            if (pr && hr && hr.width > 0 && hr.height > 0) {
+                grabOffsetX = (hr.left - pr.left) + hr.width * 0.5;
+                grabOffsetY = (hr.top - pr.top) + hr.height * 0.5;
+            } else {
+                grabOffsetX = Math.min(bounds.box.w - 16, Math.max(16, grabOffsetX));
+                grabOffsetY = Math.min(bounds.box.h - 16, Math.max(16, grabOffsetY));
             }
-            nx = Math.max(6, Math.min(Math.max(6, vw - box.w - 6), nx));
-            ny = Math.max(topBoundary, Math.min(Math.max(topBoundary, vh - box.h - 8), ny));
+            nx = Math.max(bounds.minX, Math.min(bounds.maxX, curClientX - grabOffsetX));
+            ny = Math.max(bounds.minY, Math.min(bounds.maxY, curClientY - grabOffsetY));
         }
 
         cfg.x = Math.round(nx);
         cfg.y = Math.round(ny);
         pillEl.style.left = `${cfg.x}px`;
         pillEl.style.top = `${cfg.y}px`;
+        enforcePillDomBounds(pillEl, cfg);
     };
 
     const onEnd = (endEv) => {
@@ -3217,6 +3400,7 @@ function startPillDrag(whichPill, ev) {
             window.removeEventListener('pointerup', onEnd);
             window.removeEventListener('pointercancel', onEnd);
         }
+        enforcePillDomBounds(pillEl, cfg);
         persistLibrary();
         if (whichPill === 'pen') renderPenPillConfigPopover();
     };
@@ -3670,7 +3854,7 @@ function ensureIpadConfig() {
         assistiveTouchY: null,
         largeTouchTargets: false,
         handedness: 'right',
-        holdToShapeDelayMs: 480,
+        holdToShapeDelayMs: 850,
         pageHudCompact: true,
         mouseWheelMode: 'scroll',
         batterySaverMode: false,
@@ -3680,6 +3864,12 @@ function ensureIpadConfig() {
     if (!appLibrary.ipadConfig._v13ScrollFix) {
         appLibrary.ipadConfig.mouseWheelMode = 'scroll';
         appLibrary.ipadConfig._v13ScrollFix = true;
+    }
+    if (!appLibrary.ipadConfig._v15HoldDelayFix) {
+        if (!Number.isFinite(Number(appLibrary.ipadConfig.holdToShapeDelayMs)) || Number(appLibrary.ipadConfig.holdToShapeDelayMs) <= 500) {
+            appLibrary.ipadConfig.holdToShapeDelayMs = 850;
+        }
+        appLibrary.ipadConfig._v15HoldDelayFix = true;
     }
     return appLibrary.ipadConfig;
 }
@@ -3766,6 +3956,12 @@ function applyFullscreenFocusUI(enabled) {
     if (menuBtn) {
         menuBtn.classList.toggle('active', on);
         menuBtn.textContent = on ? '⤢ Thoát TM' : '⛶ Toàn màn';
+    }
+    if (typeof applyPenPillLayout === 'function') {
+        applyPenPillLayout();
+        if (typeof requestAnimationFrame === 'function') {
+            requestAnimationFrame(() => applyPenPillLayout());
+        }
     }
 }
 
@@ -3971,12 +4167,13 @@ function renderIpadTouchSettingsPanel() {
         ),
         mkChoiceRow(
             'holdToShapeDelayMs',
-            '5. Thời gian giữ cuối nét → Tự thành hình',
-            'Điều chỉnh độ trễ khi giữ đầu bút ở cuối nét để nắn thẳng / thành hình / Mạch C:',
+            '5. Thời gian giữ cuối nét → Tự thành hình / Mạch C',
+            'Vẽ bình thường nhấc bút nhanh sẽ luôn giữ nét vẽ tay; chỉ khi giữ yên đầu bút đủ lâu mới tự nắn thẳng / thành hình / Mạch C:',
             [
-                { val: 350, label: '⚡ Nhanh (350 ms)' },
-                { val: 480, label: '👌 Chuẩn (480 ms)' },
-                { val: 700, label: '🐢 Chậm chắc (700 ms)' }
+                { val: 550, label: '⚡ Nhanh (550 ms)' },
+                { val: 850, label: '👌 Chuẩn (850 ms)' },
+                { val: 1150, label: '🐢 Chậm chắc (1150 ms)' },
+                { val: 1500, label: '🛡 Rất chậm (1500 ms)' }
             ]
         ),
         mkChoiceRow(

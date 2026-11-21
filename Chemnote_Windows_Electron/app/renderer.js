@@ -103,6 +103,12 @@ function fitA4ToScreen(mode = 'auto') {
     if (typeof updateChainFloatingBarPos === 'function') updateChainFloatingBarPos();
     if (typeof updateLassoFloatingBarPos === 'function') updateLassoFloatingBarPos();
     if (typeof syncPageQuickNavUI === 'function') syncPageQuickNavUI();
+    if (typeof enforcePillDomBounds === 'function' && typeof appLibrary !== 'undefined') {
+        const pillEl = document.getElementById('penPillWidget');
+        if (pillEl && pillEl.classList?.contains('is-floating')) {
+            enforcePillDomBounds(pillEl, appLibrary.penPillConfig);
+        }
+    }
     renderAll();
 }
 
@@ -121,6 +127,12 @@ function zoomCanvasBy(factor) {
     if (typeof updateChainFloatingBarPos === 'function') updateChainFloatingBarPos();
     if (typeof updateLassoFloatingBarPos === 'function') updateLassoFloatingBarPos();
     if (typeof syncPageQuickNavUI === 'function') syncPageQuickNavUI();
+    if (typeof enforcePillDomBounds === 'function' && typeof appLibrary !== 'undefined') {
+        const pillEl = document.getElementById('penPillWidget');
+        if (pillEl && pillEl.classList?.contains('is-floating')) {
+            enforcePillDomBounds(pillEl, appLibrary.penPillConfig);
+        }
+    }
     renderAll();
 }
 
@@ -639,7 +651,8 @@ function drawSmoothInkStroke(c, st, paperIsDark = false) {
     }
 
     const style = st.penStyle || 'ballpoint';
-    const isCalligraphic = (style === 'fountain' || style === 'brush') && st.mode !== 'highlighter' && !st.snappedShape && baseOp >= 0.985;
+    // Chỉ duy nhất Bút máy (fountain) có nét thanh – đậm; Bút bi (ballpoint), Bút lông & Nét đứt luôn đều nét 100%
+    const isCalligraphic = style === 'fountain' && st.mode !== 'highlighter' && !st.snappedShape && baseOp >= 0.985;
 
     if (isCalligraphic) {
         const isLiveStroke = !!st.liveTip || (typeof currentInkStroke !== 'undefined' && st === currentInkStroke);
@@ -659,8 +672,8 @@ function drawSmoothInkStroke(c, st, paperIsDark = false) {
             }
         }
 
-        // 1. Khử điểm trùng theo chiều dài cung + khử rung kính iPad bằng Taubin (giữ nguyên góc nhọn & kích thước chữ)
-        const minCtrlDist = Math.max(1.8, Math.min(3.6, baseW * 0.82));
+        // 1. Khử điểm trùng theo chiều dài cung — bảo toàn tuyệt đối mọi góc nhọn (tam giác, vuông, ngũ/lục giác) & đầu/đuôi nét
+        const minCtrlDist = Math.max(1.0, Math.min(2.2, baseW * 0.55));
         const ctrlPts = [{ ...pts[0] }];
         for (let i = 1; i < pts.length - 1; i++) {
             const prev = ctrlPts[ctrlPts.length - 1];
@@ -668,7 +681,7 @@ function drawSmoothInkStroke(c, st, paperIsDark = false) {
             const v1x = pts[i].x - pts[i - 1].x, v1y = pts[i].y - pts[i - 1].y;
             const v2x = pts[i + 1].x - pts[i].x, v2y = pts[i + 1].y - pts[i].y;
             const l1 = Math.hypot(v1x, v1y), l2 = Math.hypot(v2x, v2y);
-            const isSharpRaw = l1 > 1.0 && l2 > 1.0 && ((v1x * v2x + v1y * v2y) / (l1 * l2)) < -0.25;
+            const isSharpRaw = l1 > 0.8 && l2 > 0.8 && ((v1x * v2x + v1y * v2y) / (l1 * l2)) < 0.62;
             if (dPrev >= minCtrlDist || isSharpRaw) {
                 ctrlPts.push({ ...pts[i] });
             }
@@ -681,17 +694,17 @@ function drawSmoothInkStroke(c, st, paperIsDark = false) {
             const v1x = ctrlPts[i].x - ctrlPts[i - 1].x, v1y = ctrlPts[i].y - ctrlPts[i - 1].y;
             const v2x = ctrlPts[i + 1].x - ctrlPts[i].x, v2y = ctrlPts[i + 1].y - ctrlPts[i].y;
             const l1 = Math.hypot(v1x, v1y), l2 = Math.hypot(v2x, v2y);
-            if (l1 > 2.0 && l2 > 2.0 && ((v1x * v2x + v1y * v2y) / (l1 * l2)) < -0.35) {
+            if (l1 > 1.2 && l2 > 1.2 && ((v1x * v2x + v1y * v2y) / (l1 * l2)) < 0.58) {
                 isCusp[i] = true;
             }
         }
-        if (nPts >= 4) {
-            // Khi đang kéo bút live dùng 2 lượt Taubin nhẹ pin; khi nhấc bút (committed) chạy đủ 4 lượt siêu mượt và cache Path2D vĩnh viễn!
-            const tPasses = isLiveStroke ? [0.40, -0.22] : [0.42, -0.26, 0.34, -0.18];
+        if (nPts >= 4 && !st._preSmoothed) {
+            // Chỉ làm mượt rất nhẹ khi chưa qua beautifyInkStrokePoints, tuyệt đối không làm tròn góc nhọn hay tụt đầu/đuôi
+            const tPasses = isLiveStroke ? [0.18] : [0.22, -0.10];
             for (let pass = 0; pass < tPasses.length; pass++) {
                 const fac = tPasses[pass];
                 const snap = ctrlPts.map(q => ({ x: q.x, y: q.y }));
-                for (let i = 1; i < nPts - 1; i++) {
+                for (let i = 2; i < nPts - 2; i++) {
                     if (isCusp[i]) continue;
                     const a = snap[i - 1], b = snap[i], d = snap[i + 1];
                     const la = Math.hypot(b.x - a.x, b.y - a.y);
@@ -927,7 +940,7 @@ function drawSmoothInkStroke(c, st, paperIsDark = false) {
                 const v1x = pCur.x - pPrev.x, v1y = pCur.y - pPrev.y;
                 const v2x = pNext.x - pCur.x, v2y = pNext.y - pCur.y;
                 const l1 = Math.hypot(v1x, v1y), l2 = Math.hypot(v2x, v2y);
-                if (l1 > 2.5 && l2 > 2.5 && ((v1x * v2x + v1y * v2y) / (l1 * l2)) < 0.22) {
+                if (l1 > 1.2 && l2 > 1.2 && ((v1x * v2x + v1y * v2y) / (l1 * l2)) < 0.62) {
                     c.lineTo(pCur.x, pCur.y);
                     c.lineTo(mx, my);
                 } else {

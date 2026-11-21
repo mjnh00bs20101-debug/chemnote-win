@@ -1,11 +1,11 @@
 {
-  "version": "15.15",
-  "versionCode": 35,
-  "releasedAt": "2026-11-20",
-  "title": "v15.15 — Sổ Tay 331 Tác Nhân Chu Văn Phòng (CTCT), Kéo Thả Cơ Chế Ra Giấy & Sửa Cuộn",
+  "version": "15.15.1",
+  "versionCode": 36,
+  "releasedAt": "2026-11-21",
+  "title": "v15.15.1 — Hub PC Studio Gộp 1 Thanh, Nét Vẽ Sắc Góc Không Hở Đuôi, Bút Bi Đều Nét & Khóa Viền Viên Thuốc",
   "highlights": [
-    "Tích hợp trọn bộ 331 Tác nhân Hóa Hữu Cơ từ Sổ Tay Tác Nhân (tác giả: Chu Văn Phòng, ~14.5 MB ảnh sạch watermark thay vì 96 MB PDF), hiển thị trực quan bằng CTCT và tìm nhanh theo tên/viết tắt (DMSO, LAH, mCPBA, Pd/C...)",
-    "Hỗ trợ kéo thả (Drag-to-Paper) Phản ứng tổng quát, Cơ chế hoặc Bảng tác nhân CVP trực tiếp ra đúng vị trí trên giấy A4, kèm nút ◧ Cạnh trái",
-    "Sửa triệt để lỗi cuộn không hết các phản ứng dài trong modal tra cứu; mở sử dụng tự do 100% mọi tính năng"
+    "Hub PC Studio riêng cho bản Windows (.exe): bỏ viên thuốc nổi, gộp toàn bộ công cụ vẽ + ChemDraw + 3 nút tra cứu nhanh (185 Phản ứng, 331 Tác nhân, BTH) gọn rộng trên 1 thanh",
+    "Sửa triệt để lỗi nét vẽ bị bo cong mất góc nhọn và tụt nét đuôi gây hở hình; chỉnh Bút bi đều nét 100% (chỉ Bút máy có thanh – đậm)",
+    "Tăng độ trễ chuyển nét tay sang Mạch C (mặc định 850 ms, tắt đổi tức thì khi nhấc bút) và khóa cứng viền di chuyển 4 cạnh cho viên thuốc"
   ]
 }

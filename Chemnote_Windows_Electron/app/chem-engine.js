@@ -2686,12 +2686,20 @@ function detectTremorSafeCorners(work) {
         turnCross[i] = ax * by - ay * bx;
     }
     for (let i = 1; i < n - 1; i++) {
+        // Kiểm tra góc cục bộ ngay tại đỉnh trước để giữ góc nhọn nhỏ (tam giác, vuông, ngũ giác, lục giác)
+        const lax = work[i].x - work[i - 1].x, lay = work[i].y - work[i - 1].y;
+        const lbx = work[i + 1].x - work[i].x, lby = work[i + 1].y - work[i].y;
+        const lla = Math.hypot(lax, lay), llb = Math.hypot(lbx, lby);
+        const localCos = (lla >= 2.2 && llb >= 2.2)
+            ? Math.max(-1, Math.min(1, (lax * lbx + lay * lby) / (lla * llb)))
+            : 1;
+
         let backIdx = i - 1;
-        while (backIdx > 0 && Math.hypot(work[i].x - work[backIdx].x, work[i].y - work[backIdx].y) < 7.5 && (i - backIdx) < 4) {
+        while (backIdx > 0 && Math.hypot(work[i].x - work[backIdx].x, work[i].y - work[backIdx].y) < 5.5 && (i - backIdx) < 3) {
             backIdx--;
         }
         let fwdIdx = i + 1;
-        while (fwdIdx < n - 1 && Math.hypot(work[fwdIdx].x - work[i].x, work[fwdIdx].y - work[i].y) < 7.5 && (fwdIdx - i) < 4) {
+        while (fwdIdx < n - 1 && Math.hypot(work[fwdIdx].x - work[i].x, work[fwdIdx].y - work[i].y) < 5.5 && (fwdIdx - i) < 3) {
             fwdIdx++;
         }
         const vbx = work[i].x - work[backIdx].x, vby = work[i].y - work[backIdx].y;
@@ -2699,7 +2707,8 @@ function detectTremorSafeCorners(work) {
         const lb = Math.hypot(vbx, vby), lf = Math.hypot(vfx, vfy);
         if (lb < 1.2 || lf < 1.2) continue;
         const macroCos = Math.max(-1, Math.min(1, (vbx * vfx + vby * vfy) / (lb * lf)));
-        if (macroCos >= -0.10) continue;
+        // Bảo vệ mọi góc rẽ > ~50° (cos < 0.64): giữ sắc nét góc tam giác (60°), vuông (90°), ngũ giác (108°), lục giác (120°)
+        if (macroCos >= 0.64 && localCos >= 0.55) continue;
         const cCur = turnCross[i];
         const prevOsc = i > 1 && (turnCross[i - 1] * cCur < 0);
         const nxtOsc = i < n - 2 && (turnCross[i + 1] * cCur < 0);
@@ -2707,7 +2716,7 @@ function detectTremorSafeCorners(work) {
             work[i].x - (work[backIdx].x + work[fwdIdx].x) * 0.5,
             work[i].y - (work[backIdx].y + work[fwdIdx].y) * 0.5
         );
-        if ((prevOsc && nxtOsc && dev < 11.5) || (((i === 1 && nxtOsc) || (i === n - 2 && prevOsc)) && dev < 11.5)) {
+        if (prevOsc && nxtOsc && dev < 4.0) {
             continue;
         }
         isCorner[i] = true;
@@ -2768,24 +2777,20 @@ function beautifyInkStrokePoints(pts, options = {}) {
 
     const work = clean.map(p => ({ ...p }));
     const n = work.length;
-    if (n >= 4) {
-        snapStrokeHookNeighbor(work[0], work[1], work[2]);
-        snapStrokeHookNeighbor(work[n - 1], work[n - 2], work[n - 3]);
-    }
-
     const isCorner = detectTremorSafeCorners(work);
-    const eff = Math.max(0.08, smoothVal);
-    // Hậu xử lý nhẹ tay tinh tế kiểu Notewise: khử rung tay vi mô mà giữ 99% dáng chữ tự nhiên (không nhảy chữ khi nhấc bút)
-    const lam = Math.min(0.52, 0.16 + eff * 0.34);
-    const mu = -lam * 0.58;
-    const passes = [lam, mu, lam * 0.48];
+    const eff = Math.max(0.05, smoothVal);
+    // Khử rung tay cực nhẹ, giữ nguyên 100% góc nhọn & đầu/đuôi nét (không co rút hay làm hở hình)
+    const lam = Math.min(0.28, 0.08 + eff * 0.20);
+    const mu = -lam * 0.52;
+    const passes = [lam, mu];
 
-    // Taubin pull-push theo chiều dài cung: triệt tiêu răng cưa lởm chởm mà giữ nguyên bụng chữ tròn
     for (let p = 0; p < passes.length; p++) {
         const factor = passes[p];
         const snap = work.map(pt => ({ x: pt.x, y: pt.y }));
         for (let i = 1; i < n - 1; i++) {
             if (isCorner[i]) continue;
+            // Giảm làm mượt ở sát đầu/đuôi nét để không bao giờ kéo tụt nét đuôi gây hở hình
+            const edgeWeight = (i === 1 || i === n - 2) ? 0.30 : 1.0;
             const prev = snap[i - 1], cur = snap[i], nxt = snap[i + 1];
             const la = Math.hypot(cur.x - prev.x, cur.y - prev.y);
             const lb = Math.hypot(nxt.x - cur.x, nxt.y - cur.y);
@@ -2793,12 +2798,12 @@ function beautifyInkStrokePoints(pts, options = {}) {
             if (lSum < 0.05) continue;
             const targetX = (prev.x * lb + nxt.x * la) / lSum;
             const targetY = (prev.y * lb + nxt.y * la) / lSum;
-            work[i].x = cur.x + (targetX - cur.x) * factor;
-            work[i].y = cur.y + (targetY - cur.y) * factor;
+            work[i].x = cur.x + (targetX - cur.x) * factor * edgeWeight;
+            work[i].y = cur.y + (targetY - cur.y) * factor * edgeWeight;
         }
     }
 
-    alignStraightStemSubspans(work, isCorner, Math.min(0.45, 0.18 + eff * 0.26));
+    alignStraightStemSubspans(work, isCorner, Math.min(0.32, 0.12 + eff * 0.20));
 
     for (let i = 1; i < n - 1; i++) {
         if (typeof work[i].p === 'number' && typeof work[i - 1].p === 'number' && typeof work[i + 1].p === 'number') {
@@ -4446,7 +4451,7 @@ const handleCanvasPointerMove = e => {
             let outY = ptW.y;
             if ((useSmooth || isHlStroke) && ls) {
                 const rawDist = Math.hypot(ptW.x - ls.lastRawX, ptW.y - ls.lastRawY);
-                if (rawDist < (isHlStroke ? 0.45 : 0.22) && i < evList.length - 1) continue;
+                if (rawDist < (isHlStroke ? 0.45 : 0.18) && i < evList.length - 1) continue;
                 let alpha;
                 if (isHlStroke) {
                     const dtSample = Math.max(2, Math.min(40, ceTs - (ls.lastTs || baseStartTs)));
@@ -4455,10 +4460,21 @@ const handleCanvasPointerMove = e => {
                     const velRamp = Math.min(1, ls.vel / 0.55);
                     alpha = Math.max(0.36, Math.min(0.74, 0.42 + velRamp * 0.30));
                 } else {
-                    const speedBoost = Math.min(1, rawDist / 10) * 0.42;
-                    const minA = isPenPtr ? 0.40 : 0.26;
-                    const baseAlpha = Math.max(minA, (isPenPtr ? 0.78 : 0.70) - smoothFactor * (isPenPtr ? 0.40 : 0.46));
-                    alpha = Math.max(minA, Math.min(0.96, baseAlpha + speedBoost));
+                    // Phát hiện góc rẽ trực tiếp khi đang vẽ: nếu đổi hướng mạnh -> snap ngay tới đỉnh để góc nhọn sắc nét!
+                    let cornerSnapBoost = 0;
+                    if (prev0 && rawDist >= 0.8) {
+                        const vx1 = ls.lastRawX - prev0.x, vy1 = ls.lastRawY - prev0.y;
+                        const vx2 = ptW.x - ls.lastRawX, vy2 = ptW.y - ls.lastRawY;
+                        const l1 = Math.hypot(vx1, vy1);
+                        if (l1 >= 1.2) {
+                            const turnCos = (vx1 * vx2 + vy1 * vy2) / (l1 * rawDist);
+                            if (turnCos < 0.65) cornerSnapBoost = 0.45;
+                        }
+                    }
+                    const speedBoost = Math.min(1, rawDist / 7) * 0.28;
+                    const minA = isPenPtr ? 0.66 : 0.58;
+                    const baseAlpha = Math.max(minA, (isPenPtr ? 0.92 : 0.88) - smoothFactor * 0.28);
+                    alpha = Math.max(minA, Math.min(1.0, baseAlpha + speedBoost + cornerSnapBoost));
                 }
                 ls.filtX += (ptW.x - ls.filtX) * alpha;
                 ls.filtY += (ptW.y - ls.filtY) * alpha;
@@ -5011,28 +5027,33 @@ function finishPointer(e) {
             }
         } else if (!currentInkStroke.snappedShape && e && e.type !== 'lostpointercapture' && e.type !== 'pointercancel' && Number.isFinite(e.clientX) && Number.isFinite(e.clientY) && inkPts.length >= 1) {
             const endW = clampWorldPointToPaper(screenToWorld(e.clientX, e.clientY), 0.5);
+            const lsEnd = currentInkStroke._liveState;
+            const sTs = lsEnd?.startTs;
+            const endTs = (typeof e.timeStamp === 'number' && e.timeStamp > 0) ? e.timeStamp : performance.now();
+
+            // Đẩy nốt điểm thực tế cuối cùng từ raw tip (tránh lag bộ lọc làm mất đoạn đuôi khi đóng hình)
+            if (lsEnd && Number.isFinite(lsEnd.lastRawX) && Number.isFinite(lsEnd.lastRawY)) {
+                const rawTipW = clampWorldPointToPaper({ x: lsEnd.lastRawX, y: lsEnd.lastRawY }, 0.5);
+                const curLast = inkPts[inkPts.length - 1];
+                const dRawToLast = Math.hypot(rawTipW.x - curLast.x, rawTipW.y - curLast.y);
+                const dRawToEnd = Math.hypot(rawTipW.x - endW.x, rawTipW.y - endW.y);
+                if (dRawToLast >= 0.45 && dRawToEnd >= 0.45 && dRawToLast < 400) {
+                    const lp = (typeof curLast?.p === 'number' && curLast.p > 0) ? curLast.p : 0.36;
+                    const rt = typeof sTs === 'number' ? Math.max((curLast?.t || 0) + 0.5, Number(((lsEnd.lastTs || endTs) - sTs).toFixed(2))) : undefined;
+                    inkPts.push(typeof rt === 'number' ? { x: rawTipW.x, y: rawTipW.y, p: lp, t: rt } : { x: rawTipW.x, y: rawTipW.y, p: lp });
+                }
+            }
+
             const lastPt = inkPts[inkPts.length - 1];
             const tailDist = Math.hypot(endW.x - lastPt.x, endW.y - lastPt.y);
             const minTail = currentInkStroke.mode === 'highlighter'
-                ? Math.max(2.2, (currentInkStroke.width || 14) * 0.18)
-                : (currentInkStroke.penStyle === 'ballpoint' ? 0.5 : 1.15);
-            let isReverseHook = false;
-            if (inkPts.length >= 2 && tailDist > 0.1) {
-                const prev2 = inkPts[inkPts.length - 2];
-                const d1x = lastPt.x - prev2.x, d1y = lastPt.y - prev2.y;
-                const d2x = endW.x - lastPt.x, d2y = endW.y - lastPt.y;
-                const l1 = Math.hypot(d1x, d1y);
-                if (l1 > 0.5 && ((d1x * d2x + d1y * d2y) / (l1 * tailDist)) < -0.25 && tailDist < 6.0) {
-                    isReverseHook = true;
-                }
-            }
-            if (!isReverseHook && tailDist > minTail && tailDist < 400) {
+                ? Math.max(1.8, (currentInkStroke.width || 14) * 0.14)
+                : 0.25;
+            if (tailDist > minTail && tailDist < 400) {
                 const lastP = (typeof lastPt?.p === 'number' && lastPt.p > 0) ? lastPt.p : 0.36;
                 const tailP = (e.pointerType === 'pen' && typeof e.pressure === 'number' && e.pressure > 0 && e.pressure <= 1)
                     ? Math.min(lastP, e.pressure)
-                    : (lastP * 0.45);
-                const sTs = currentInkStroke._liveState?.startTs;
-                const endTs = (typeof e.timeStamp === 'number' && e.timeStamp > 0) ? e.timeStamp : performance.now();
+                    : (lastP * 0.72);
                 const tailT = typeof sTs === 'number' ? Math.max((lastPt?.t || 0) + 0.5, Number((endTs - sTs).toFixed(2))) : undefined;
                 inkPts.push(typeof tailT === 'number'
                     ? { x: endW.x, y: endW.y, p: tailP, t: tailT }
@@ -5076,34 +5097,8 @@ function finishPointer(e) {
                         renderAll(); return;
                     }
                 }
-                if (currentInkStroke.mode === 'ink' && appLibrary.autoZigZagToCarbon !== false) {
-                    const freeRing = detectFreehandCarbonRing(inkPts, true);
-                    if (freeRing) {
-                        const rCount = commitRegularCarbonRing(doc, freeRing.cx, freeRing.cy, freeRing.n, freeRing.startAng, currentInkStroke.color);
-                        if (rCount >= 5) {
-                            currentInkStroke = null;
-                            if (typeof showGestureToast === 'function') {
-                                showGestureToast('✨ Tự căn đẹp Vòng ' + rCount + 'C!');
-                            }
-                            if (typeof invalidateInkBaseLayerCache === 'function') invalidateInkBaseLayerCache();
-                            if (typeof schedulePersistLibrary === 'function') schedulePersistLibrary(900); else persistLibrary();
-                            renderAll(); return;
-                        }
-                    }
-                    const zzVerts = isUnambiguousZigZagCarbonStroke(inkPts, doc);
-                    if (zzVerts) {
-                        const cCount = commitCarbonChainFromVertices(zzVerts, doc, currentInkStroke.color);
-                        if (cCount >= 3) {
-                            currentInkStroke = null;
-                            if (typeof showGestureToast === 'function') {
-                                showGestureToast('✨ Mạch Carbon (' + cCount + 'C)');
-                            }
-                            if (typeof invalidateInkBaseLayerCache === 'function') invalidateInkBaseLayerCache();
-                            if (typeof schedulePersistLibrary === 'function') schedulePersistLibrary(900); else persistLibrary();
-                            renderAll(); return;
-                        }
-                    }
-                }
+                // Không tự động đổi nét vẽ tay thành Mạch C / Vòng C ngay khi nhấc bút nhanh (0ms)
+                // để tránh viết/vẽ bình thường bị biến thành Carbon. Chỉ chuyển khi giữ đầu bút đủ thời gian delay.
             } catch (_) {}
         }
         stripTransientInkFields(currentInkStroke);
@@ -5119,6 +5114,7 @@ function finishPointer(e) {
                     smoothing: currentInkStroke.smoothing,
                     autoRefine: typeof appLibrary === 'undefined' || appLibrary.penAutoRefine !== false
                 });
+                currentInkStroke._preSmoothed = true;
             } catch (_) {}
         }
         const committedStroke = currentInkStroke;
@@ -6765,7 +6761,7 @@ function recognizeInkShape(rawPoints, mode = 'ink') {
 
     // 2. Hình khép kín (Vòng Carbon 5/6/7 cạnh đều đẹp, Tam giác, Tứ giác, Tròn / Elip)
     if (totalLen >= 65 && diag >= 22 && chordLen <= Math.max(36, Math.min(diag * 0.45, totalLen * 0.25))) {
-        if (mode !== 'highlighter' && typeof detectFreehandCarbonRing === 'function') {
+        if (mode !== 'highlighter' && appLibrary.autoZigZagToCarbon !== false && typeof detectFreehandCarbonRing === 'function') {
             const holdRing = detectFreehandCarbonRing(rawPoints, false);
             if (holdRing) {
                 const rPreview = (typeof BOND_LENGTH === 'number' && BOND_LENGTH > 0 ? BOND_LENGTH : 44) / (2 * Math.sin(Math.PI / holdRing.n));
@@ -6879,7 +6875,7 @@ function recognizeInkShape(rawPoints, mode = 'ink') {
                 if (!prefersCurve) {
                     const maxCarbonLeg = Math.max(145, (typeof BOND_LENGTH === 'number' ? BOND_LENGTH : 44) * 3.3);
                     const maxAvgCarbonLeg = Math.max(120, (typeof BOND_LENGTH === 'number' ? BOND_LENGTH : 44) * 2.75);
-                    const isCarbonSized = maxLeg <= maxCarbonLeg && avgLegLen <= maxAvgCarbonLeg && (verts.length === 3 || hasAlternation);
+                    const isCarbonSized = appLibrary.autoZigZagToCarbon !== false && maxLeg <= maxCarbonLeg && avgLegLen <= maxAvgCarbonLeg && (verts.length === 3 || hasAlternation);
                     if (isCarbonSized) {
                         const previewPts = buildCleanCarbonChainVertices(verts, getDocState());
                         return {
@@ -7501,7 +7497,7 @@ function scheduleInkHoldSnapCheck(ptW) {
         inkHoldTimer = null;
     }
     inkHoldState = { x: ptW.x, y: ptW.y };
-    const delayMs = Math.max(250, Math.min(1200, Number(appLibrary?.ipadConfig?.holdToShapeDelayMs) || 480));
+    const delayMs = Math.max(350, Math.min(1800, Number(appLibrary?.ipadConfig?.holdToShapeDelayMs) || 850));
     inkHoldTimer = setTimeout(triggerInkHoldSnap, delayMs);
 }
 

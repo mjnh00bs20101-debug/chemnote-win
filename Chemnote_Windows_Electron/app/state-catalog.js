@@ -10,10 +10,10 @@ let activePenStyle = 'fountain';
 let penSmoothing = 0.50;
 let penOpacity = 1.0;
 const APP_CURRENT_VERSION = {
-    version: '15.15',
-    versionCode: 35,
-    releasedAt: '2026-11-20',
-    title: 'v15.15 — Sổ Tay 331 Tác Nhân CVP, Kéo Thả Cơ Chế Ra Giấy, Sửa Cuộn & Miễn Phí 100%'
+    version: '15.15.1',
+    versionCode: 36,
+    releasedAt: '2026-11-21',
+    title: 'v15.15.1 — Hub PC Studio, Nét Vẽ Sắc Góc, Bút Bi Đều Nét & Khóa Viền Viên Thuốc'
 };
 const DEFAULT_FAVORITE_COLORS = ['#111827', '#0ea5e9', '#fb7185', '#10b981', '#fbbf24'];
 const DEFAULT_HIGHLIGHTER_COLORS = ['#fef08a', '#86efac', '#f9a8d4', '#7dd3fc', '#fdba74'];
@@ -490,10 +490,10 @@ function syncActivePaperDimensions() {
 
 /* KHO DỮ LIỆU BIỂU TƯỢNG HÓA HỌC (CATALOGS) */
 const PEN_STYLE_CATALOG = [
-    { id: 'fountain', title: 'Bút máy Notewise (Thanh–Đậm siêu mượt · Bút chính)', svg: '<path d="M4,18 C9,8 15,15 20,6" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M8,14 C11,10 13,12 16,10" fill="none" stroke="currentColor" stroke-width="3.6"/>' },
-    { id: 'brush', title: 'Bút lông Mượt (Nét cọ tự nhiên theo lực & tốc độ)', svg: '<path d="M4,17 Q10,6 15,13 T20,7" fill="none" stroke="currentColor" stroke-width="3.2"/><circle cx="6" cy="15" r="2.2" fill="currentColor" stroke="none"/>' },
-    { id: 'ballpoint', title: 'Bút bi Mượt (Chống run • Thanh gọn đều nét)', svg: '<path d="M4,18 C9,10 15,14 20,6" fill="none" stroke="currentColor" stroke-width="2.4"/>' },
-    { id: 'dashed', title: 'Bút nét đứt', svg: '<path d="M4,18 C9,10 15,14 20,6" fill="none" stroke="currentColor" stroke-width="2.3" stroke-dasharray="3.5 3"/>' }
+    { id: 'fountain', label: 'Bút máy', title: 'Bút máy (Có nét thanh – đậm theo hướng & lực nhấn)', svg: '<path d="M4,18 C9,8 15,15 20,6" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M8,14 C11,10 13,12 16,10" fill="none" stroke="currentColor" stroke-width="3.6"/>' },
+    { id: 'ballpoint', label: 'Bút bi', title: 'Bút bi (Đều nét 100% · Không thanh đậm)', svg: '<path d="M4,18 C9,10 15,14 20,6" fill="none" stroke="currentColor" stroke-width="2.4"/>' },
+    { id: 'brush', label: 'Bút lông', title: 'Bút lông đều nét (Không thanh đậm)', svg: '<path d="M4,17 Q10,6 15,13 T20,7" fill="none" stroke="currentColor" stroke-width="3.2"/><circle cx="6" cy="15" r="2.2" fill="currentColor" stroke="none"/>' },
+    { id: 'dashed', label: 'Nét đứt', title: 'Bút nét đứt (Đều nét)', svg: '<path d="M4,18 C9,10 15,14 20,6" fill="none" stroke="currentColor" stroke-width="2.3" stroke-dasharray="3.5 3"/>' }
 ];
 
 const COLOR_PALETTE_LIST = [
@@ -1419,7 +1419,7 @@ function normalizeLoadedLibraryState() {
         assistiveTouchY: null,
         largeTouchTargets: false,
         handedness: 'right',
-        holdToShapeDelayMs: 480,
+        holdToShapeDelayMs: 850,
         pageHudCompact: true,
         batterySaverMode: false,
         fullscreenFocusMode: false
